@@ -11,7 +11,7 @@ class AudioSystem {
 
   static Future<void> init() async {
     if (_initialised) return;
-    FlameAudio.audioCache.prefix = 'assets/audio/';
+    FlameAudio.audioCache.prefix = 'assets/images/audio/';
     await FlameAudio.audioCache.loadAll([
       'jump.wav',
       'death.wav',

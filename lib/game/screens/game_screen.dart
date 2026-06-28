@@ -105,7 +105,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/ratita/ratita_brazo_abierto.png',
+              'assets/images/ratita/ratita_brazo_abierto.png',
               height: 130,
               fit: BoxFit.contain,
               errorBuilder: (_, __, ___) => const SizedBox(height: 130),
@@ -180,7 +180,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             ),
             const SizedBox(height: 8),
             Image.asset(
-              'assets/ratita/ratita_brazo_cruzado.png',
+              'assets/images/ratita/ratita_brazo_cruzado.png',
               height: 110,
               fit: BoxFit.contain,
               errorBuilder: (_, __, ___) => const SizedBox(height: 110),

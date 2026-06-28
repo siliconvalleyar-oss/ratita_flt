@@ -18,9 +18,7 @@ dev_dependencies:
   flutter_lints: ^3.0.1
 
 flutter:
-  uses-material-design: true
   assets:
-    - assets/ratita/
-    - assets/audio/
-    - assets/icon/
-    - assets/animations/
+    - assets/images/ratita/
+    - assets/images/audio/
+    - assets/images/icon/

@@ -15,13 +15,10 @@ class Friend extends PositionComponent {
 
   Future<Sprite?> _load(String filename) async {
     try {
-      return await Sprite.load('assets/ratita/$filename');
-    } catch (_) {
-      try {
-        return await Sprite.load(filename);
-      } catch (_) {
-        return null;
-      }
+      return await Sprite.load('ratita/$filename');
+    } catch (e) {
+      print('[FRIEND] Failed to load sprite "$filename": $e');
+      return null;
     }
   }
 
