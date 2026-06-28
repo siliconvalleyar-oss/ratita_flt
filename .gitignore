@@ -1,0 +1,41 @@
+# Flutter
+.dart_tool/
+.packages
+build/
+*.iml
+.pub-cache/
+.pub/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Android
+android/app/build/
+android/.gradle/
+android/local.properties
+android/gradle/wrapper/gradle-wrapper.jar
+*.apk
+*.aab
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+
+# IDE
+.vscode/
+.idea/
+.opencode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated
+**/*.g.dart
+**/*.freezed.dart
+
+# APK output
+/APK/
+
+assets/*

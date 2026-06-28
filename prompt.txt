@@ -1,0 +1,78 @@
+INSTRUCCIÓN ABSOLUTA: Actúa como un experto programador Flutter y Dart, especialista en el motor de juegos Flame (versión estable reciente). Debes generar el código completo y funcional de un juego llamado "Ratita Runner" siguiendo al pie de la letra todas las especificaciones que se detallan a continuación. El resultado debe ser un proyecto Flutter listo para compilar y ejecutar, con todos los archivos necesarios: pubspec.yaml, main.dart, y cada componente del juego en archivos separados dentro de la carpeta lib/. También debes incluir el código para cargar y usar cada uno de los assets mencionados. No omitas ni un solo detalle. La respuesta debe contener ÚNICAMENTE el código fuente, sin explicaciones adicionales fuera de los bloques de código. Usa bloques de código markdown con el nombre del archivo correspondiente.
+
+--- ESPECIFICACIONES DEL JUEGO ---
+
+1. TÍTULO: "Ratita Runner"
+2. GÉNERO: Endless Runner (corredor infinito) con scroll lateral de izquierda a derecha. El jugador avanza automáticamente y solo controla el salto (tocar pantalla / barra espaciadora / clic).
+3. PERSONAJE PRINCIPAL (Ratita):
+   - Debe usar los siguientes sprites (todos ubicados en assets/ratita/):
+     * ratita_saltando.png → cuando el jugador salta.
+     * ratita_caminando_frente.png → paso inicial al comenzar a correr.
+     * ratita_caminando_a_la_izquierda_00.png y _01.png → animación de caminata (se deben invertir horizontalmente (flipX=true) para que parezca que camina hacia la derecha, que es la dirección del juego). La animación debe alternar entre estos dos cuadros.
+     * ratita_brazo_abierto.png → pantalla de bienvenida (menú principal).
+     * ratita_brazo_cruzado.png → pantalla de Game Over (cuando pierde).
+   - El jugador debe tener una hitbox rectangular ajustada a su tamaño.
+4. OBSTÁCULOS / ENEMIGOS:
+   - El principal obstáculo es una GALLINA (ave). Debe aparecer desde el borde derecho de la pantalla caminando hacia la izquierda. El jugador debe saltarla para no colisionar.
+   - Sprites de la gallina (ubicados en assets/enemigos/):
+     * ave_caminando_a_la_izquierda_00.png → animación de caminata (se usa tal cual, ya que va a la izquierda).
+     * ave_comiendo_maiz_00.png y _01.png → para alternar una animación de "gallina detenida picoteando". Estas gallinas aparecen quietas en el suelo y el jugador también debe saltarlas.
+     * ave_parada_a_la_izquierda_00.png → gallina parada pensando (obstáculo estático).
+   - También deben aparecer otros enemigos genéricos usando enemigo_01.png y enemigo_02.png (pueden ser voladores o en el suelo, tú defines su comportamiento, pero que sean esquivables saltando o agachándose si lo implementas).
+   - Todos los enemigos deben tener colisiones con el jugador; al chocar, se termina el juego.
+5. ELEMENTO AMIGO (opcional pero debe estar presente):
+   - amigo_clon_00.png (ubicado en assets/amigo/). Puede aparecer como power-up que da una vida extra o simplemente como un elemento decorativo que acompaña al jugador. Tú eliges su función, pero debe estar integrado.
+6. FONDO Y ENTORNO:
+    - Fondo en scroll parallax (al menos dos capas: cielo y suelo). Puedes crear colores o rectángulos simples si no hay imágenes de fondo, pero que se mueva para dar sensación de velocidad.
+    - El suelo debe ser una línea o plataforma donde caminan la ratita y las gallinas.
+    - LUGAR ESPECIAL: "Campo La Juanita". Cuando el jugador llega al campo llamado "Campo La Juanita", se debe reproducir un sonido ambiente de grillos (sonido nocturno de campo). Los archivos de audio están en assets/audio/grillos_00.mp3 y assets/audio/grillos_01.mp3. Selecciona uno aleatoriamente al entrar al campo. El sonido debe sonar en loop mientras el jugador esté en el Campo La Juanita, y detenerse al salir.
+7. PUNTUACIÓN:
+   - Contador de puntos que aumenta con el tiempo o la distancia recorrida. Se muestra en la parte superior de la pantalla.
+   - La velocidad del juego y la frecuencia de aparición de obstáculos deben aumentar progresivamente para incrementar la dificultad.
+8. PANTALLAS:
+   - Pantalla de inicio: muestra la ratita con brazos abiertos (ratita_brazo_abierto.png), el título del juego y un botón "JUGAR".
+   - Pantalla de juego: la partida en sí, con la puntuación visible.
+   - Pantalla de Game Over: muestra la ratita con brazos cruzados (ratita_brazo_cruzado.png), la puntuación final y un botón "REINICIAR".
+9. CONTROLES:
+   - Al tocar la pantalla (en móvil) o presionar la barra espaciadora (en web/escritorio) el jugador salta.
+   - Salto con física simple (gravedad, velocidad vertical).
+10. ICONO DE LA APLICACIÓN:
+    - Usar el archivo assets/icon/icon.png como icono de la app (configurar en pubspec.yaml y en las carpetas nativas correspondientes).
+11. ESTRUCTURA DE CARPETAS Y ASSETS:
+    - assets/ratita/ (todos los sprites de la ratita)
+    - assets/enemigos/ (todos los sprites de gallinas y enemigos)
+    - assets/amigo/ (amigo_clon_00.png)
+    - assets/icon/ (icon.png)
+    - assets/audio/ (archivos de audio: grillos_00.mp3, grillos_01.mp3 para ambiente del Campo La Juanita, gallina_00.mp3 y gallina_01.mp3 para sonidos de gallina)
+    - Asegúrate de declarar TODOS estos assets en el pubspec.yaml.
+12. TECNOLOGÍAS:
+    - Usa Flame como motor de juegos (flutter pub add flame).
+    - Manejo de estados con FlameGame.
+    - Animaciones con SpriteAnimationComponent o SpriteComponent según corresponda.
+    - Colisiones usando hitboxes (ShapeHitbox o RectangleHitbox).
+    - Generación de obstáculos mediante un temporizador (Timer) o un sistema de oleadas.
+13. CÓDIGO FUENTE:
+    - main.dart: punto de entrada, usa runApp(MyApp()) y MaterialApp con home: GameWrapper() o similar.
+    - Crea una carpeta lib/game/ para todos los componentes: game.dart, player.dart, enemy.dart, obstacle_manager.dart, etc.
+    - Usa un overlay para los menús (OverlayWidget) o componentes separados que se añaden/quitan.
+    - El código debe ser limpio, comentado en español y bien estructurado.
+14. REQUISITOS ADICIONALES:
+    - El juego debe adaptarse al tamaño de la pantalla (usar cámara o escalado).
+    - Manejar correctamente el ciclo de vida (pausa/reanudar).
+    - El juego debe ser jugable y divertido, con una dificultad progresiva.
+
+15. AUDIO Y AMBIENTE:
+    - Manejar audio con la librería de audio de Flame (flame_audio) o paule.
+    - Archivos de audio disponibles en assets/audio/:
+      * grillos_00.mp3 (166 KB) → sonido ambiente de grillos nocturnos para el Campo La Juanita.
+      * grillos_01.mp3 (412 KB) → sonido ambiente de grillos nocturnos para el Campo La Juanita.
+      * gallina_00.mp3 (2.72 MB) → sonido de gallina (más largo).
+      * gallina_01.mp3 (292 KB) → sonido de gallina (más corto).
+      * chancho_00.mp3 (76 KB) → sonido de chancho.
+    - En el Campo La Juanita, reproducir grillos_00.mp3 o grillos_01.mp3 en loop.
+    - El audio de grillos se activa al entrar al Campo La Juanita y se detiene al salir.
+    - Mantener el audio de grillos en bajo volumen como sonido ambiente.
+    - Sonido de gallina: reproducir gallina_00.mp3 o gallina_01.mp3 cuando la gallina aparezca o como efecto de sonido.
+
+--- INSTRUCCIÓN FINAL ---
+Genera TODOS los archivos necesarios. Comienza con pubspec.yaml, luego main.dart y el resto de la estructura. Asegúrate de que el código compile sin errores. No añadas explicaciones fuera de los bloques de código. El prompt final debe ser autocontenido. ¡Adelante!
