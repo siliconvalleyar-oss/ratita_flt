@@ -6,10 +6,7 @@ class AudioSystem {
   static int _lastScoreTime = 0;
   static int _activePlayers = 0;
   static const int _maxPlayers = 3;
-  static String? _currentCricket;
-  static bool _cricketPaused = false;
-  static String? _currentRain;
-  static bool _rainPaused = false;
+  static AudioPlayer? _rainPlayer;
 
   static Future<void> init() async {
     if (_initialised) return;
@@ -26,7 +23,6 @@ class AudioSystem {
       'chancho_00.mp3',
       'lluvia_00.mp3',
       'relampago_00.mp3',
-      'relampago_01.mp3',
     ]);
     _initialised = true;
   }
@@ -59,76 +55,38 @@ class AudioSystem {
     _play(r ? 'gallina_00.mp3' : 'gallina_01.mp3', volume: 0.4);
   }
 
-  static void pigSound() {
-    _play('chancho_00.mp3', volume: 0.5);
-  }
+  static void pigSound() => _play('chancho_00.mp3', volume: 0.5);
 
-  static void startCrickets() {
-    if (!_initialised) return;
-    stopCrickets();
-    final r = Random().nextBool();
-    _currentCricket = r ? 'grillos_00.mp3' : 'grillos_01.mp3';
-    FlameAudio.bgm.play(
-      _currentCricket!,
-      volume: 0.15,
-    );
-  }
-
-  static void stopCrickets() {
-    if (_currentCricket != null) {
-      FlameAudio.bgm.stop();
-      _currentCricket = null;
-    }
-  }
-
-  static void pauseAll() {
-    if (_currentCricket != null) {
-      FlameAudio.bgm.pause();
-      _cricketPaused = true;
-    }
-  }
-
-  static void resumeAll() {
-    if (_cricketPaused && _currentCricket != null) {
-      FlameAudio.bgm.resume();
-      _cricketPaused = false;
-    }
-    if (_rainPaused && _currentRain != null) {
-      FlameAudio.bgm.resume();
-      _rainPaused = false;
-    }
-  }
+  static void thunder() => _play('relampago_00.mp3', volume: 0.6);
 
   static void startRain() {
     if (!_initialised) return;
     stopRain();
-    _currentRain = 'lluvia_00.mp3';
-    FlameAudio.bgm.play(_currentRain!, volume: 0.25);
+    FlameAudio.play('lluvia_00.mp3', volume: 0.2).then((player) {
+      _rainPlayer = player;
+      player.setReleaseMode(ReleaseMode.loop);
+    });
   }
 
   static void stopRain() {
-    if (_currentRain != null) {
-      FlameAudio.bgm.stop();
-      _currentRain = null;
-    }
+    _rainPlayer?.stop();
+    _rainPlayer?.dispose();
+    _rainPlayer = null;
   }
 
-  static void thunder() {
+  static void startCrickets() {
+    if (!_initialised) return;
+    FlameAudio.bgm.stop();
     final r = Random().nextBool();
-    _play(r ? 'relampago_00.mp3' : 'relampago_01.mp3', volume: 0.6);
+    FlameAudio.bgm.play(r ? 'grillos_00.mp3' : 'grillos_01.mp3', volume: 0.15);
   }
 
-  static void pauseRain() {
-    if (_currentRain != null) {
-      FlameAudio.bgm.pause();
-      _rainPaused = true;
-    }
+  static void stopCrickets() {
+    FlameAudio.bgm.stop();
   }
 
-  static void resumeRain() {
-    if (_rainPaused && _currentRain != null) {
-      FlameAudio.bgm.resume();
-      _rainPaused = false;
-    }
+  static void stopAll() {
+    stopRain();
+    stopCrickets();
   }
 }

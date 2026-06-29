@@ -119,6 +119,19 @@ class Ground extends PositionComponent {
       _boltTimer -= dt;
       if (_boltTimer <= 0) _showBolt = false;
     }
+    if (_isRaining) {
+      final w = RatitaGame.viewportW;
+      final groundTop = RatitaGame.groundY;
+      for (final drop in _rainDrops) {
+        drop[1] += drop[2] * 6;
+        drop[0] -= drop[3] * 2;
+        if (drop[1] > groundTop) {
+          drop[1] = -drop[2];
+          drop[0] = _random.nextDouble() * w;
+        }
+        if (drop[0] < -10) drop[0] = w + 10;
+      }
+    }
   }
 
   @override
@@ -245,13 +258,6 @@ class Ground extends PositionComponent {
     if (_isRaining) {
       final rainPaint = Paint()..color = const Color.fromARGB(120, 180, 200, 255);
       for (final drop in _rainDrops) {
-        drop[1] += drop[2] * 6;
-        drop[0] -= drop[3] * 2;
-        if (drop[1] > groundTop) {
-          drop[1] = -drop[2];
-          drop[0] = _random.nextDouble() * w;
-        }
-        if (drop[0] < -10) drop[0] = w + 10;
         canvas.drawLine(
           Offset(drop[0], drop[1]),
           Offset(drop[0] - drop[3] * 3, drop[1] + drop[2] * 4),

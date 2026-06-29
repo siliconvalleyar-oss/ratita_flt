@@ -75,14 +75,14 @@ class RatitaGame extends FlameGame {
     _isRaining = false;
     _thunderTimer = 0;
     _flashAlpha = 0;
-    AudioSystem.stopCrickets();
-    AudioSystem.stopRain();
+    AudioSystem.stopAll();
     removeAll(children);
     _player = Player();
     _ground = Ground();
     add(_ground);
     add(_player);
     _player.goToRunning();
+    _player.lives = 5;
     onStateChanged?.call();
   }
 
@@ -90,8 +90,7 @@ class RatitaGame extends FlameGame {
     _screenState = GameScreenState.gameOver;
     _player.die();
     _scoreSystem.checkHighScore();
-    AudioSystem.stopCrickets();
-    AudioSystem.stopRain();
+    AudioSystem.stopAll();
     AudioSystem.death();
     onStateChanged?.call();
   }
@@ -99,8 +98,7 @@ class RatitaGame extends FlameGame {
   void goToMenu() {
     _screenState = GameScreenState.menu;
     _inCampoLaJuanita = false;
-    AudioSystem.stopCrickets();
-    AudioSystem.stopRain();
+    AudioSystem.stopAll();
     removeAll(children);
     _player = Player();
     _ground = Ground();
@@ -273,7 +271,14 @@ class RatitaGame extends FlameGame {
           _enemies.removeAt(i);
           return;
         } else {
-          endGame();
+          e.removeFromParent();
+          _enemies.removeAt(i);
+          final dead = _player.loseLife();
+          if (dead) {
+            endGame();
+          } else {
+            AudioSystem.death();
+          }
           return;
         }
       }
@@ -327,6 +332,17 @@ class RatitaGame extends FlameGame {
         textDirection: TextDirection.ltr,
       )..layout();
       tp2.paint(canvas, Offset(size.x - tp2.width - 10, 42));
+
+      // lives
+      final heartText = '❤' * _player.lives;
+      final tpLives = TextPainter(
+        text: TextSpan(
+          text: heartText,
+          style: const TextStyle(fontSize: 18, color: Color(0xFFCC0000)),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tpLives.paint(canvas, const Offset(10, 42));
 
       if (_inCampoLaJuanita) {
         const campStyle = TextStyle(

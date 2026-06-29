@@ -12,6 +12,7 @@ class Player extends PositionComponent {
   int _frameIndex = 0;
   bool hasShield = false;
   double _shieldTimer = 0;
+  int lives = 5;
   double _menuBounceTimer = 0;
   double _menuBounceOffset = 0;
   double _celebrationTimer = 0;
@@ -90,6 +91,15 @@ class Player extends PositionComponent {
 
   void die() {
     _state = PlayerState.dead;
+  }
+
+  bool loseLife() {
+    lives--;
+    if (lives <= 0) {
+      die();
+      return true;
+    }
+    return false;
   }
 
   void celebrate() {
