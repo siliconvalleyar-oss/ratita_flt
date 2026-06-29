@@ -13,23 +13,42 @@ enum EnemyType {
   pig,
 }
 
+class _EnemySprites {
+  Sprite? walk;
+  Sprite? eat0, eat1, eat2, eat3;
+  Sprite? stand;
+  Sprite? enemy0, enemy1, enemy2;
+  Sprite? pig;
+  static bool _loaded = false;
+
+  static final _EnemySprites instance = _EnemySprites._();
+
+  _EnemySprites._();
+
+  static Future<void> loadAll() async {
+    if (_loaded) return;
+    _loaded = true;
+    final i = instance;
+    try {
+      i.walk = await Sprite.load('ratita/ave_caminando_a_la_izquierda_00.png');
+      i.eat0 = await Sprite.load('ratita/ave_comiendo_maiz_00.png');
+      i.eat1 = await Sprite.load('ratita/ave_comiendo_maiz_01.png');
+      i.eat2 = await Sprite.load('ratita/ave_comiendo_maiz_02.png');
+      i.eat3 = await Sprite.load('ratita/ave_comiendo_maiz_03.png');
+      i.stand = await Sprite.load('ratita/ave_parada_a_la_izquierda_00.png');
+      i.enemy0 = await Sprite.load('ratita/enemy_00.png');
+      i.enemy1 = await Sprite.load('ratita/enemy_01.png');
+      i.enemy2 = await Sprite.load('ratita/enemy_02.png');
+      i.pig = await Sprite.load('ratita/chancho_00.png');
+    } catch (_) {}
+  }
+}
+
 class Enemy extends PositionComponent {
   final EnemyType type;
   bool passed = false;
   double _animTimer = 0;
   int _animFrame = 0;
-
-  Sprite? _spriteWalk;
-  Sprite? _spriteEat0;
-  Sprite? _spriteEat1;
-  Sprite? _spriteEat2;
-  Sprite? _spriteEat3;
-  Sprite? _spriteStand;
-  Sprite? _spriteEnemy0;
-  Sprite? _spriteEnemy1;
-  Sprite? _spriteEnemy2;
-  Sprite? _spritePig;
-  bool _useSprites = false;
 
   Enemy({required this.type});
 
@@ -54,44 +73,9 @@ class Enemy extends PositionComponent {
     return Enemy(type: t);
   }
 
-  Future<Sprite?> _load(String filename) async {
-    try {
-      return await Sprite.load('ratita/$filename');
-    } catch (_) {
-      return null;
-    }
-  }
-
   @override
   Future<void> onLoad() async {
-    final results = await Future.wait([
-      _load('ave_caminando_a_la_izquierda_00.png'),
-      _load('ave_comiendo_maiz_00.png'),
-      _load('ave_comiendo_maiz_01.png'),
-      _load('ave_comiendo_maiz_02.png'),
-      _load('ave_comiendo_maiz_03.png'),
-      _load('ave_parada_a_la_izquierda_00.png'),
-      _load('enemy_00.png'),
-      _load('enemy_01.png'),
-      _load('enemy_02.png'),
-      _load('chancho_00.png'),
-    ]);
-
-    _spriteWalk = results[0];
-    _spriteEat0 = results[1];
-    _spriteEat1 = results[2];
-    _spriteEat2 = results[3];
-    _spriteEat3 = results[4];
-    _spriteStand = results[5];
-    _spriteEnemy0 = results[6];
-    _spriteEnemy1 = results[7];
-    _spriteEnemy2 = results[8];
-    _spritePig = results[9];
-
-    if (_spriteWalk != null || _spriteStand != null || _spritePig != null ||
-        _spriteEnemy0 != null || _spriteEnemy1 != null || _spriteEnemy2 != null) {
-      _useSprites = true;
-    }
+    await _EnemySprites.loadAll();
 
     switch (type) {
       case EnemyType.walkingChicken:
@@ -148,52 +132,32 @@ class Enemy extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    if (_useSprites) {
-      _renderSprites(canvas);
-    } else {
-      _renderFallback(canvas);
-    }
-  }
-
-  void _renderSprites(Canvas canvas) {
+    final s = _EnemySprites.instance;
     final sz = Vector2(width, height);
 
     switch (type) {
       case EnemyType.walkingChicken:
-        _spriteWalk?.render(canvas, size: sz);
+        s.walk?.render(canvas, size: sz);
         break;
       case EnemyType.eatingChicken:
-        final sprite = _animFrame == 0
-            ? _spriteEat0
-            : _animFrame == 1
-                ? _spriteEat1
-                : _animFrame == 2
-                    ? _spriteEat2
-                    : _spriteEat3;
+        final sprite = _animFrame == 0 ? s.eat0 : _animFrame == 1 ? s.eat1 : _animFrame == 2 ? s.eat2 : s.eat3;
         sprite?.render(canvas, size: sz);
         break;
       case EnemyType.standingChicken:
-        _spriteStand?.render(canvas, size: sz);
+        s.stand?.render(canvas, size: sz);
         break;
       case EnemyType.enemy0:
-        _spriteEnemy0?.render(canvas, size: sz);
+        s.enemy0?.render(canvas, size: sz);
         break;
       case EnemyType.enemy1:
-        _spriteEnemy1?.render(canvas, size: sz);
+        s.enemy1?.render(canvas, size: sz);
         break;
       case EnemyType.enemy2:
-        _spriteEnemy2?.render(canvas, size: sz);
+        s.enemy2?.render(canvas, size: sz);
         break;
       case EnemyType.pig:
-        _spritePig?.render(canvas, size: sz);
+        s.pig?.render(canvas, size: sz);
         break;
     }
-  }
-
-  void _renderFallback(Canvas canvas) {
-    final paint = Paint();
-    paint.color = const Color(0xFFFF4444);
-    canvas.drawRRect(
-      RRect.fromRectXY(Rect.fromLTWH(0, 0, width, height), 6, 6), paint);
   }
 }

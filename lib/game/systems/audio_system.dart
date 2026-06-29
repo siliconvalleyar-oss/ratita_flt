@@ -4,10 +4,6 @@ import 'package:flame_audio/flame_audio.dart';
 class AudioSystem {
   static bool _initialised = false;
   static int _lastScoreTime = 0;
-  static int _activePlayers = 0;
-  static const int _maxPlayers = 3;
-  static AudioPlayer? _rainPlayer;
-  static AudioPlayer? _cricketPlayer;
 
   static Future<void> init() async {
     if (_initialised) return;
@@ -29,13 +25,10 @@ class AudioSystem {
   }
 
   static void _play(String file, {double volume = 0.5}) {
-    if (!_initialised || _activePlayers >= _maxPlayers) return;
-    _activePlayers++;
-    FlameAudio.play(file, volume: volume).then((_) {
-      _activePlayers--;
-    }, onError: (_) {
-      _activePlayers--;
-    });
+    if (!_initialised) return;
+    try {
+      FlameAudio.play(file, volume: volume);
+    } catch (_) {}
   }
 
   static void jump() => _play('jump.wav', volume: 0.5);
@@ -60,37 +53,27 @@ class AudioSystem {
   static void pigSound() => _play('chancho_00.mp3', volume: 0.5);
 
   static void startRain() {
-    if (!_initialised || _rainPlayer != null) return;
-    FlameAudio.play('lluvia_00.mp3', volume: 0.5).then((player) {
-      _rainPlayer = player;
-      player.setReleaseMode(ReleaseMode.loop);
-    });
+    if (!_initialised) return;
+    FlameAudio.bgm.stop();
+    FlameAudio.bgm.play('lluvia_00.mp3', volume: 0.5);
   }
 
   static void stopRain() {
-    _rainPlayer?.stop();
-    _rainPlayer?.dispose();
-    _rainPlayer = null;
+    FlameAudio.bgm.stop();
   }
 
   static void startCrickets() {
     if (!_initialised) return;
-    stopCrickets();
+    FlameAudio.bgm.stop();
     final r = Random().nextBool();
-    FlameAudio.play(r ? 'grillos_00.mp3' : 'grillos_01.mp3', volume: 0.4).then((player) {
-      _cricketPlayer = player;
-      player.setReleaseMode(ReleaseMode.loop);
-    });
+    FlameAudio.bgm.play(r ? 'grillos_00.mp3' : 'grillos_01.mp3', volume: 0.4);
   }
 
   static void stopCrickets() {
-    _cricketPlayer?.stop();
-    _cricketPlayer?.dispose();
-    _cricketPlayer = null;
+    FlameAudio.bgm.stop();
   }
 
   static void stopAll() {
-    stopRain();
-    stopCrickets();
+    FlameAudio.bgm.stop();
   }
 }

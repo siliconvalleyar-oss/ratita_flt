@@ -203,8 +203,31 @@ class RatitaGame extends FlameGame {
           _player.y = RatitaGame.groundY - _player.height;
         }
       }
-      return;
     }
+
+    // still clean enemies during explosion
+    for (final e in _enemies) {
+      e.move(_scoreSystem.speed, dt);
+    }
+    _enemies.removeWhere((e) {
+      if (e.isOffScreen) {
+        e.removeFromParent();
+        return true;
+      }
+      return false;
+    });
+    for (final f in _friends) {
+      f.move(_scoreSystem.speed, dt);
+    }
+    _friends.removeWhere((f) {
+      if (f.isOffScreen) {
+        f.removeFromParent();
+        return true;
+      }
+      return false;
+    });
+
+    if (_explodeTimer > 0) return;
 
     _checkCampoLaJuanita();
     _checkMilestones();
@@ -223,28 +246,6 @@ class RatitaGame extends FlameGame {
       _friendTimer = _random.nextDouble() * 10 + 8;
       _spawnFriend();
     }
-
-    for (final e in _enemies) {
-      e.move(_scoreSystem.speed, dt);
-    }
-    _enemies.removeWhere((e) {
-      if (e.isOffScreen) {
-        e.removeFromParent();
-        return true;
-      }
-      return false;
-    });
-
-    for (final f in _friends) {
-      f.move(_scoreSystem.speed, dt);
-    }
-    _friends.removeWhere((f) {
-      if (f.isOffScreen) {
-        f.removeFromParent();
-        return true;
-      }
-      return false;
-    });
 
     for (final e in _enemies) {
       if (!e.passed && e.x + e.width < playerX) {
