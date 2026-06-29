@@ -10,6 +10,8 @@ enum EnemyType {
   enemy0,
   enemy1,
   enemy2,
+  enemy3,
+  enemy4,
   pig,
 }
 
@@ -17,7 +19,7 @@ class _EnemySprites {
   Sprite? walk;
   Sprite? eat0, eat1, eat2, eat3;
   Sprite? stand;
-  Sprite? enemy0, enemy1, enemy2;
+  Sprite? enemy0, enemy1, enemy2, enemy3, enemy4;
   Sprite? pig;
   static bool _loaded = false;
 
@@ -39,6 +41,8 @@ class _EnemySprites {
       i.enemy0 = await Sprite.load('ratita/enemy_00.png');
       i.enemy1 = await Sprite.load('ratita/enemy_01.png');
       i.enemy2 = await Sprite.load('ratita/enemy_02.png');
+      i.enemy3 = await Sprite.load('ratita/enemy_03.png');
+      i.enemy4 = await Sprite.load('ratita/enemy_04.png');
       i.pig = await Sprite.load('ratita/chancho_00.png');
     } catch (_) {}
   }
@@ -55,18 +59,22 @@ class Enemy extends PositionComponent {
   factory Enemy.random(double speed, Random random) {
     final r = random.nextDouble();
     EnemyType t;
-    if (r < 0.20) {
+    if (r < 0.15) {
       t = EnemyType.walkingChicken;
-    } else if (r < 0.35) {
+    } else if (r < 0.25) {
       t = EnemyType.eatingChicken;
-    } else if (r < 0.45) {
+    } else if (r < 0.33) {
       t = EnemyType.standingChicken;
-    } else if (r < 0.60) {
+    } else if (r < 0.43) {
       t = EnemyType.enemy0;
-    } else if (r < 0.75) {
+    } else if (r < 0.53) {
       t = EnemyType.enemy1;
-    } else if (r < 0.88) {
+    } else if (r < 0.63) {
       t = EnemyType.enemy2;
+    } else if (r < 0.76) {
+      t = EnemyType.enemy3;
+    } else if (r < 0.88) {
+      t = EnemyType.enemy4;
     } else {
       t = EnemyType.pig;
     }
@@ -100,6 +108,14 @@ class Enemy extends PositionComponent {
         break;
       case EnemyType.enemy2:
         size.setValues(56, 56);
+        y = RatitaGame.groundY - height;
+        break;
+      case EnemyType.enemy3:
+        size.setValues(110, 57);
+        y = RatitaGame.groundY - height;
+        break;
+      case EnemyType.enemy4:
+        size.setValues(100, 48);
         y = RatitaGame.groundY - height;
         break;
       case EnemyType.pig:
@@ -154,6 +170,12 @@ class Enemy extends PositionComponent {
         break;
       case EnemyType.enemy2:
         s.enemy2?.render(canvas, size: sz);
+        break;
+      case EnemyType.enemy3:
+        s.enemy3?.render(canvas, size: sz);
+        break;
+      case EnemyType.enemy4:
+        s.enemy4?.render(canvas, size: sz);
         break;
       case EnemyType.pig:
         s.pig?.render(canvas, size: sz);
