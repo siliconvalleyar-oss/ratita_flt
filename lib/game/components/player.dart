@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:ratita_runner/game/ratita_game.dart';
 
-enum PlayerState { menu, running, jumping, dead, celebrating }
+enum PlayerState { menu, running, jumping, dead, celebrating, exploding }
 
 class Player extends PositionComponent {
   PlayerState _state = PlayerState.menu;
@@ -21,6 +21,8 @@ class Player extends PositionComponent {
   bool _isWalking = true;
   static const double _walkCycleDuration = 1.5;
   static const double _stopDuration = 0.6;
+  static const double _playerW = 80;
+  static const double _playerH = 120;
 
   Sprite? _spriteArmOpen;
   Sprite? _spriteArmCrossed;
@@ -31,11 +33,13 @@ class Player extends PositionComponent {
   Sprite? _spriteCelebrate0;
   Sprite? _spriteCelebrate1;
   Sprite? _spriteCelebrate2;
+  Sprite? _spriteImpact;
 
   bool _useSprites = false;
   bool get hasSprites => _useSprites;
+  bool get isExploding => _state == PlayerState.exploding;
 
-  Player() : super(size: Vector2(80, 120));
+  Player() : super(size: Vector2(_playerW, _playerH));
 
   @override
   Future<void> onLoad() async {
@@ -49,6 +53,7 @@ class Player extends PositionComponent {
       _load('ratita_festejando_00.png'),
       _load('ratita_festejando_01.png'),
       _load('ratita_festejando_02.png'),
+      _load('impact_00.png'),
     ]);
 
     _spriteArmOpen = results[0];
@@ -60,6 +65,7 @@ class Player extends PositionComponent {
     _spriteCelebrate0 = results[6];
     _spriteCelebrate1 = results[7];
     _spriteCelebrate2 = results[8];
+    _spriteImpact = results[9];
 
     if (_spriteJump != null || _spriteFront != null) {
       _useSprites = true;
@@ -73,7 +79,6 @@ class Player extends PositionComponent {
     try {
       return await Sprite.load('ratita/$filename');
     } catch (e) {
-      print('[RATITA] Failed to load sprite "$filename": $e');
       return null;
     }
   }
@@ -102,8 +107,12 @@ class Player extends PositionComponent {
     return false;
   }
 
+  void explode() {
+    _state = PlayerState.exploding;
+  }
+
   void celebrate() {
-    if (_state == PlayerState.jumping || _state == PlayerState.dead) return;
+    if (_state == PlayerState.jumping || _state == PlayerState.dead || _state == PlayerState.exploding) return;
     _state = PlayerState.celebrating;
     _celebrationTimer = 0;
     _celebrationFrame = 0;
@@ -163,7 +172,7 @@ class Player extends PositionComponent {
   }
 
   void updatePhysics(double dt) {
-    if (_state == PlayerState.dead) return;
+    if (_state == PlayerState.dead || _state == PlayerState.exploding) return;
 
     if (_state == PlayerState.jumping) {
       velocityY += 0.65;
@@ -188,11 +197,51 @@ class Player extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
+    final sz = Vector2(width, height);
+
     if (_useSprites) {
-      _renderSprites(canvas);
+      switch (_state) {
+        case PlayerState.menu:
+          _spriteArmOpen?.render(canvas, size: sz);
+          break;
+        case PlayerState.dead:
+          _spriteArmCrossed?.render(canvas, size: sz);
+          break;
+        case PlayerState.exploding:
+          _spriteImpact?.render(canvas, size: sz);
+          break;
+        case PlayerState.celebrating:
+          final sprite = _celebrationFrame == 0
+              ? _spriteCelebrate0
+              : _celebrationFrame == 1
+                  ? _spriteCelebrate1
+                  : _spriteCelebrate2;
+          sprite?.render(canvas, size: sz);
+          break;
+        case PlayerState.running:
+          if (!_isWalking) {
+            _spriteFront?.render(canvas, size: sz);
+          } else {
+            final sprite = _frameIndex == 0 ? _spriteRunRight0 : _spriteRunRight1;
+            if (sprite != null) {
+              sprite.render(canvas, size: sz);
+            } else {
+              _spriteFront?.render(canvas, size: sz);
+            }
+          }
+          break;
+        case PlayerState.jumping:
+          _spriteJump?.render(canvas, size: sz);
+          break;
+      }
     } else {
-      _renderFallback(canvas);
+      final paint = Paint()..color = const Color(0xFF8B4513);
+      canvas.drawRRect(
+        RRect.fromRectXY(Rect.fromLTWH(8, 8, width - 16, height - 16), 8, 8),
+        paint,
+      );
     }
+
     if (hasShield) {
       final paint = Paint()
         ..color = const Color(0x6600FF00)
@@ -204,57 +253,5 @@ class Player extends PositionComponent {
         paint,
       );
     }
-  }
-
-  void _renderSprites(Canvas canvas) {
-    final sz = Vector2(width, height);
-
-    switch (_state) {
-      case PlayerState.menu:
-        _spriteArmOpen?.render(canvas, size: sz);
-        break;
-
-      case PlayerState.dead:
-        _spriteArmCrossed?.render(canvas, size: sz);
-        break;
-
-      case PlayerState.celebrating:
-        final sprite = _celebrationFrame == 0
-            ? _spriteCelebrate0
-            : _celebrationFrame == 1
-                ? _spriteCelebrate1
-                : _spriteCelebrate2;
-        sprite?.render(canvas, size: sz);
-        break;
-
-      case PlayerState.running:
-        if (!_isWalking) {
-          _spriteFront?.render(canvas, size: sz);
-        } else {
-          final sprite = _frameIndex == 0 ? _spriteRunRight0 : _spriteRunRight1;
-          if (sprite != null) {
-            sprite.render(canvas, size: sz);
-          } else {
-            _spriteFront?.render(canvas, size: sz);
-          }
-        }
-        break;
-
-      case PlayerState.jumping:
-        _spriteJump?.render(canvas, size: sz);
-        break;
-    }
-  }
-
-  void _renderFallback(Canvas canvas) {
-    final paint = Paint()..color = const Color(0xFF8B4513);
-    canvas.drawRRect(
-      RRect.fromRectXY(Rect.fromLTWH(8, 8, width - 16, height - 16), 8, 8),
-      paint,
-    );
-    paint.color = const Color(0xFFA0522D);
-    canvas.drawCircle(Offset(width - 16, 20), 6, paint);
-    paint.color = const Color(0xFF222222);
-    canvas.drawCircle(Offset(width - 14, 18), 2, paint);
   }
 }

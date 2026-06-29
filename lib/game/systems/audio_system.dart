@@ -7,6 +7,7 @@ class AudioSystem {
   static int _activePlayers = 0;
   static const int _maxPlayers = 3;
   static AudioPlayer? _rainPlayer;
+  static AudioPlayer? _cricketPlayer;
 
   static Future<void> init() async {
     if (_initialised) return;
@@ -39,6 +40,7 @@ class AudioSystem {
 
   static void jump() => _play('jump.wav', volume: 0.5);
   static void death() => _play('death.wav', volume: 0.6);
+  static void thunder() => _play('relampago_00.mp3', volume: 0.8);
 
   static void score() {
     if (!_initialised) return;
@@ -57,12 +59,9 @@ class AudioSystem {
 
   static void pigSound() => _play('chancho_00.mp3', volume: 0.5);
 
-  static void thunder() => _play('relampago_00.mp3', volume: 0.6);
-
   static void startRain() {
-    if (!_initialised) return;
-    stopRain();
-    FlameAudio.play('lluvia_00.mp3', volume: 0.2).then((player) {
+    if (!_initialised || _rainPlayer != null) return;
+    FlameAudio.play('lluvia_00.mp3', volume: 0.5).then((player) {
       _rainPlayer = player;
       player.setReleaseMode(ReleaseMode.loop);
     });
@@ -76,13 +75,18 @@ class AudioSystem {
 
   static void startCrickets() {
     if (!_initialised) return;
-    FlameAudio.bgm.stop();
+    stopCrickets();
     final r = Random().nextBool();
-    FlameAudio.bgm.play(r ? 'grillos_00.mp3' : 'grillos_01.mp3', volume: 0.15);
+    FlameAudio.play(r ? 'grillos_00.mp3' : 'grillos_01.mp3', volume: 0.4).then((player) {
+      _cricketPlayer = player;
+      player.setReleaseMode(ReleaseMode.loop);
+    });
   }
 
   static void stopCrickets() {
-    FlameAudio.bgm.stop();
+    _cricketPlayer?.stop();
+    _cricketPlayer?.dispose();
+    _cricketPlayer = null;
   }
 
   static void stopAll() {

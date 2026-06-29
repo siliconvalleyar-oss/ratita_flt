@@ -27,6 +27,7 @@ class RatitaGame extends FlameGame {
   bool _isRaining = false;
   double _thunderTimer = 0;
   double _flashAlpha = 0;
+  double _explodeTimer = 0;
 
   VoidCallback? onStateChanged;
 
@@ -190,6 +191,21 @@ class RatitaGame extends FlameGame {
       _flashAlpha = (_flashAlpha - dt * 3).clamp(0.0, 1.0);
     }
 
+    // explode timer
+    if (_explodeTimer > 0) {
+      _explodeTimer -= dt;
+      if (_explodeTimer <= 0) {
+        final dead = _player.loseLife();
+        if (dead) {
+          endGame();
+        } else {
+          _player.goToRunning();
+          _player.y = RatitaGame.groundY - _player.height;
+        }
+      }
+      return;
+    }
+
     _checkCampoLaJuanita();
     _checkMilestones();
 
@@ -273,12 +289,10 @@ class RatitaGame extends FlameGame {
         } else {
           e.removeFromParent();
           _enemies.removeAt(i);
-          final dead = _player.loseLife();
-          if (dead) {
-            endGame();
-          } else {
-            AudioSystem.death();
-          }
+          _player.explode();
+          _explodeTimer = 0.5;
+          _flashAlpha = 0.8;
+          AudioSystem.thunder();
           return;
         }
       }

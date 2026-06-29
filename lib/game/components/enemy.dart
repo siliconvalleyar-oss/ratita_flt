@@ -7,9 +7,10 @@ enum EnemyType {
   walkingChicken,
   eatingChicken,
   standingChicken,
-  flyingEnemy,
-  groundEnemy,
-  pig
+  enemy0,
+  enemy1,
+  enemy2,
+  pig,
 }
 
 class Enemy extends PositionComponent {
@@ -24,8 +25,9 @@ class Enemy extends PositionComponent {
   Sprite? _spriteEat2;
   Sprite? _spriteEat3;
   Sprite? _spriteStand;
-  Sprite? _spriteFly;
-  Sprite? _spriteGround;
+  Sprite? _spriteEnemy0;
+  Sprite? _spriteEnemy1;
+  Sprite? _spriteEnemy2;
   Sprite? _spritePig;
   bool _useSprites = false;
 
@@ -34,16 +36,18 @@ class Enemy extends PositionComponent {
   factory Enemy.random(double speed, Random random) {
     final r = random.nextDouble();
     EnemyType t;
-    if (r < 0.25) {
+    if (r < 0.20) {
       t = EnemyType.walkingChicken;
-    } else if (r < 0.40) {
+    } else if (r < 0.35) {
       t = EnemyType.eatingChicken;
-    } else if (r < 0.55) {
+    } else if (r < 0.45) {
       t = EnemyType.standingChicken;
-    } else if (r < 0.70) {
-      t = EnemyType.flyingEnemy;
-    } else if (r < 0.85) {
-      t = EnemyType.groundEnemy;
+    } else if (r < 0.60) {
+      t = EnemyType.enemy0;
+    } else if (r < 0.75) {
+      t = EnemyType.enemy1;
+    } else if (r < 0.88) {
+      t = EnemyType.enemy2;
     } else {
       t = EnemyType.pig;
     }
@@ -53,8 +57,7 @@ class Enemy extends PositionComponent {
   Future<Sprite?> _load(String filename) async {
     try {
       return await Sprite.load('ratita/$filename');
-    } catch (e) {
-      print('[ENEMY] Failed to load sprite "$filename": $e');
+    } catch (_) {
       return null;
     }
   }
@@ -68,8 +71,9 @@ class Enemy extends PositionComponent {
       _load('ave_comiendo_maiz_02.png'),
       _load('ave_comiendo_maiz_03.png'),
       _load('ave_parada_a_la_izquierda_00.png'),
-      _load('enemigo_01.png'),
-      _load('enemigo_02.png'),
+      _load('enemy_00.png'),
+      _load('enemy_01.png'),
+      _load('enemy_02.png'),
       _load('chancho_00.png'),
     ]);
 
@@ -79,11 +83,13 @@ class Enemy extends PositionComponent {
     _spriteEat2 = results[3];
     _spriteEat3 = results[4];
     _spriteStand = results[5];
-    _spriteFly = results[6];
-    _spriteGround = results[7];
-    _spritePig = results[8];
+    _spriteEnemy0 = results[6];
+    _spriteEnemy1 = results[7];
+    _spriteEnemy2 = results[8];
+    _spritePig = results[9];
 
-    if (_spriteWalk != null || _spriteStand != null || _spritePig != null) {
+    if (_spriteWalk != null || _spriteStand != null || _spritePig != null ||
+        _spriteEnemy0 != null || _spriteEnemy1 != null || _spriteEnemy2 != null) {
       _useSprites = true;
     }
 
@@ -100,16 +106,20 @@ class Enemy extends PositionComponent {
         size.setValues(50, 50);
         y = RatitaGame.groundY - height;
         break;
-      case EnemyType.flyingEnemy:
-        size.setValues(60, 50);
-        y = RatitaGame.groundY - height - 40 - Random().nextDouble() * 30;
+      case EnemyType.enemy0:
+        size.setValues(55, 52);
+        y = RatitaGame.groundY - height;
         break;
-      case EnemyType.groundEnemy:
-        size.setValues(65, 45);
+      case EnemyType.enemy1:
+        size.setValues(52, 54);
+        y = RatitaGame.groundY - height;
+        break;
+      case EnemyType.enemy2:
+        size.setValues(56, 56);
         y = RatitaGame.groundY - height;
         break;
       case EnemyType.pig:
-        size.setValues(55, 55);
+        size.setValues(55, 40);
         y = RatitaGame.groundY - height;
         break;
     }
@@ -165,11 +175,14 @@ class Enemy extends PositionComponent {
       case EnemyType.standingChicken:
         _spriteStand?.render(canvas, size: sz);
         break;
-      case EnemyType.flyingEnemy:
-        _spriteFly?.render(canvas, size: sz);
+      case EnemyType.enemy0:
+        _spriteEnemy0?.render(canvas, size: sz);
         break;
-      case EnemyType.groundEnemy:
-        _spriteGround?.render(canvas, size: sz);
+      case EnemyType.enemy1:
+        _spriteEnemy1?.render(canvas, size: sz);
+        break;
+      case EnemyType.enemy2:
+        _spriteEnemy2?.render(canvas, size: sz);
         break;
       case EnemyType.pig:
         _spritePig?.render(canvas, size: sz);
@@ -179,45 +192,8 @@ class Enemy extends PositionComponent {
 
   void _renderFallback(Canvas canvas) {
     final paint = Paint();
-    switch (type) {
-      case EnemyType.walkingChicken:
-        paint.color = const Color(0xFFFFA500);
-        canvas.drawRRect(
-            RRect.fromRectXY(Rect.fromLTWH(0, 0, width, height), 6, 6), paint);
-        paint.color = const Color(0xFFFF0000);
-        canvas.drawCircle(const Offset(10, 12), 4, paint);
-        break;
-      case EnemyType.eatingChicken:
-        paint.color = const Color(0xFFFFD700);
-        canvas.drawOval(Rect.fromLTWH(0, 0, width, height), paint);
-        break;
-      case EnemyType.standingChicken:
-        paint.color = const Color(0xFFFF8C00);
-        canvas.drawRRect(
-            RRect.fromRectXY(Rect.fromLTWH(0, 0, width, height), 8, 8), paint);
-        break;
-      case EnemyType.flyingEnemy:
-        paint.color = const Color(0xFF9C27B0);
-        canvas.drawRRect(
-            RRect.fromRectXY(Rect.fromLTWH(0, 0, width, height), 10, 10),
-            paint);
-        paint.color = const Color(0xFFCE93D8);
-        canvas.drawRect(Rect.fromLTWH(4, 8, width - 8, 8), paint);
-        break;
-      case EnemyType.groundEnemy:
-        paint.color = const Color(0xFF4CAF50);
-        canvas.drawRRect(
-            RRect.fromRectXY(Rect.fromLTWH(0, 0, width, height), 6, 6), paint);
-        paint.color = const Color(0xFF2E7D32);
-        canvas.drawCircle(const Offset(14, 12), 5, paint);
-        break;
-      case EnemyType.pig:
-        paint.color = const Color(0xFFFFB6C1);
-        canvas.drawRRect(
-            RRect.fromRectXY(Rect.fromLTWH(0, 0, width, height), 8, 8), paint);
-        paint.color = const Color(0xFFFF69B4);
-        canvas.drawCircle(const Offset(12, 14), 5, paint);
-        break;
-    }
+    paint.color = const Color(0xFFFF4444);
+    canvas.drawRRect(
+      RRect.fromRectXY(Rect.fromLTWH(0, 0, width, height), 6, 6), paint);
   }
 }
