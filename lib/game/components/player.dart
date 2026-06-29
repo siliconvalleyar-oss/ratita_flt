@@ -34,12 +34,6 @@ class Player extends PositionComponent {
   Sprite? _spriteCelebrate0;
   Sprite? _spriteCelebrate1;
   Sprite? _spriteCelebrate2;
-  Sprite? _spriteEat0;
-  Sprite? _spriteEat1;
-  Sprite? _spriteEat2;
-  Sprite? _spriteEat3;
-  int _eatFrame = 0;
-  double _eatTimer = 0;
 
   bool _useSprites = false;
   bool get hasSprites => _useSprites;
@@ -62,10 +56,6 @@ class Player extends PositionComponent {
       _load('ratita_festejando_00.png'),
       _load('ratita_festejando_01.png'),
       _load('ratita_festejando_02.png'),
-      _load('ave_comiendo_maiz_00.png'),
-      _load('ave_comiendo_maiz_01.png'),
-      _load('ave_comiendo_maiz_02.png'),
-      _load('ave_comiendo_maiz_03.png'),
     ]);
 
     _spriteArmOpen = results[0];
@@ -81,10 +71,6 @@ class Player extends PositionComponent {
     _spriteCelebrate0 = results[10];
     _spriteCelebrate1 = results[11];
     _spriteCelebrate2 = results[12];
-    _spriteEat0 = results[13];
-    _spriteEat1 = results[14];
-    _spriteEat2 = results[15];
-    _spriteEat3 = results[16];
 
     if (_spriteJump != null || _spriteFront != null) {
       _useSprites = true;
@@ -156,15 +142,8 @@ class Player extends PositionComponent {
         if (_walkCycleTimer >= _walkCycleDuration) {
           _isWalking = false;
           _walkCycleTimer = 0;
-          _eatFrame = 0;
-          _eatTimer = 0;
         }
       } else {
-        _eatTimer += dt;
-        if (_eatTimer >= 0.25) {
-          _eatTimer = 0;
-          _eatFrame = (_eatFrame + 1) % 4;
-        }
         if (_walkCycleTimer >= _stopDuration) {
           _isWalking = true;
           _walkCycleTimer = 0;
@@ -252,14 +231,7 @@ class Player extends PositionComponent {
 
       case PlayerState.running:
         if (!_isWalking) {
-          final eatSprite = _eatFrame == 0
-              ? _spriteEat0
-              : _eatFrame == 1
-                  ? _spriteEat1
-                  : _eatFrame == 2
-                      ? _spriteEat2
-                      : _spriteEat3;
-          eatSprite?.render(canvas, size: sz);
+          _spriteFront?.render(canvas, size: sz);
         } else {
           final sprite = _frameIndex == 0
               ? _spriteRunRight0
