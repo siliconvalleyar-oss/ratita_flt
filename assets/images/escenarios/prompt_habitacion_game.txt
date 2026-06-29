@@ -1,0 +1,419 @@
+Crear una ilustración VECTORIAL ORIGINAL inspirada en una habitación gamer retro de finales de los años 80 y principios de los 90.
+
+IMPORTANTE:
+No reinterpretar el estilo. Mantener exactamente la misma composición, distribución, perspectiva, iluminación, nivel de detalle, geometría simplificada y estética visual del ejemplo de referencia.
+
+====================================================
+ESTILO ARTÍSTICO
+====================================================
+
+• Ilustración 100% vectorial.
+• Flat Design Premium.
+• Semi-flat con ligeros degradados.
+• Colores cálidos y saturados.
+• Sombras largas muy suaves.
+• Sin outlines negros.
+• Bordes perfectamente limpios.
+• Formas geométricas simples.
+• Aspecto minimalista pero muy detallado.
+• Estética editorial moderna.
+• Inspiración en ilustraciones vectoriales de alta calidad para videojuegos Indie.
+• Acabado extremadamente limpio.
+• Sin ruido.
+• Sin texturas fotográficas.
+• Sin pinceladas.
+• Sin acuarela.
+• Sin apariencia 3D realista.
+• Todo construido mediante formas vectoriales.
+
+El resultado debe parecer realizado completamente en Adobe Illustrator o Figma mediante formas geométricas.
+
+====================================================
+PALETA DE COLORES
+====================================================
+
+Predominan:
+
+Marrones cálidos
+Naranjas
+Amarillos
+Verdes oliva claros
+Beige
+Crema
+Terracota
+Rojo ladrillo
+Turquesa suave
+Azul petróleo
+Celeste claro
+
+Contraste bajo.
+Tonos cálidos.
+Iluminación de atardecer.
+
+====================================================
+ILUMINACIÓN
+====================================================
+
+La habitación recibe una intensa luz solar desde una ventana ubicada en la pared izquierda.
+
+La luz debe:
+
+Entrar diagonalmente.
+
+Crear un gran haz de luz.
+
+Proyectar sombras largas.
+
+Generar una atmósfera cálida.
+
+Iluminar parcialmente el piso.
+
+Iluminar parcialmente la pared.
+
+Crear contraste suave.
+
+Añadir pequeñas partículas de polvo flotando iluminadas por el sol.
+
+Toda la escena transmite nostalgia y tranquilidad.
+
+====================================================
+PERSPECTIVA
+====================================================
+
+Perspectiva angular.
+
+Vista desde una esquina superior.
+
+Lente aproximadamente equivalente a 28 mm.
+
+La habitación ocupa todo el encuadre.
+
+Sin distorsiones extremas.
+
+====================================================
+HABITACIÓN
+====================================================
+
+Pequeña habitación rectangular.
+
+Pared izquierda:
+
+revestimiento de madera vertical marrón.
+
+Pared del fondo:
+
+mitad superior marrón.
+
+mitad inferior verde oliva claro.
+
+Techo rosado cálido.
+
+Piso color madera.
+
+Alfombra rectangular grande de color verde amarillento.
+
+====================================================
+VENTANA
+====================================================
+
+Ubicada en la pared izquierda.
+
+Ventana alta y estrecha.
+
+Persiana blanca parcialmente abierta.
+
+Fuerte entrada de luz.
+
+El marco genera sombras.
+
+====================================================
+MUEBLE IZQUIERDO
+====================================================
+
+Un antiguo equipo de cinta magnética (Reel to Reel).
+
+Color gris claro.
+
+Dos enormes carretes circulares.
+
+Centro rojo.
+
+Detalles amarillos.
+
+Pequeños botones.
+
+Perillas.
+
+Panel frontal simplificado.
+
+Mueble inferior rojo oscuro.
+
+Patas de madera inclinadas.
+
+Estilo años 70.
+
+====================================================
+CUADROS
+====================================================
+
+Dos cuadros pequeños.
+
+Marcos marrones.
+
+Colgados sobre el equipo Reel to Reel.
+
+Diseño minimalista.
+
+====================================================
+TELEVISOR
+====================================================
+
+Ubicado al centro.
+
+Televisor CRT.
+
+Pantalla cuadrada.
+
+Marco color azul petróleo.
+
+Pequeños botones.
+
+LED verde.
+
+Patas inclinadas de madera.
+
+====================================================
+VHS
+====================================================
+
+Sobre el televisor.
+
+Videocasetera VHS.
+
+Color azul petróleo.
+
+Ranura frontal.
+
+Texto VHS.
+
+Botones simples.
+
+Pequeño LED verde.
+
+====================================================
+PANTALLA
+====================================================
+
+En el televisor aparece un videojuego retro.
+
+Cielo celeste.
+
+Nubes blancas.
+
+Plataformas naranjas.
+
+Tubería verde.
+
+Estética inspirada en videojuegos clásicos de plataformas de 8 bits.
+
+Todo extremadamente simplificado.
+
+====================================================
+CONSOLA
+====================================================
+
+Sobre la alfombra.
+
+Consola retro estilo Nintendo Entertainment System.
+
+Color crema.
+
+Detalles rosados.
+
+Ranuras.
+
+Botones.
+
+Cartucho insertado.
+
+====================================================
+MANDOS
+====================================================
+
+Dos controles clásicos.
+
+Uno a la izquierda.
+
+Otro a la derecha.
+
+Cable azul.
+
+Botones rojos.
+
+Cruceta negra.
+
+Distribuidos naturalmente.
+
+====================================================
+CARTUCHOS
+====================================================
+
+Uno junto a la consola.
+
+Otro sobre el piso.
+
+Colores crema y naranja.
+
+====================================================
+CABLES
+====================================================
+
+Cables azules.
+
+Curvas suaves.
+
+Distribuidos de manera natural.
+
+Conectan consola y controles.
+
+====================================================
+ALMOHADONES
+====================================================
+
+Dos almohadones rojos.
+
+Uno en primer plano izquierdo.
+
+Otro en primer plano derecho.
+
+Formas redondeadas.
+
+Sombras suaves.
+
+====================================================
+LÁMPARA
+====================================================
+
+Ubicada a la derecha.
+
+Lámpara de pie.
+
+Pantalla blanca.
+
+Base roja.
+
+Diseño minimalista.
+
+====================================================
+PUERTA
+====================================================
+
+Ubicada a la derecha.
+
+Puerta abierta.
+
+Interior oscuro.
+
+Marco marrón.
+
+====================================================
+SOMBRAS
+====================================================
+
+Sombras largas.
+
+Muy suaves.
+
+Color marrón oscuro translúcido.
+
+Consistentes con la luz proveniente de la ventana.
+
+====================================================
+FORMAS
+====================================================
+
+Todo construido con:
+
+Rectángulos
+
+Trapecios
+
+Triángulos
+
+Círculos
+
+Óvalos
+
+Curvas suaves
+
+Sin detalles innecesarios.
+
+====================================================
+NIVEL DE DETALLE
+====================================================
+
+Muy alto para ilustración vectorial.
+
+Cada objeto debe incluir:
+
+pequeñas sombras
+
+luces
+
+bordes limpios
+
+profundidad mediante planos de color
+
+microdetalles geométricos
+
+sin perder el minimalismo.
+
+====================================================
+ATMÓSFERA
+====================================================
+
+Retro.
+
+Acogedora.
+
+Nostálgica.
+
+Tarde de verano.
+
+Habitación silenciosa.
+
+Ambiente relajado.
+
+Sensación de infancia.
+
+====================================================
+CALIDAD
+====================================================
+
+Ilustración editorial profesional.
+
+Vector perfecto.
+
+Adobe Illustrator.
+
+Dribbble Top Quality.
+
+Behance Featured.
+
+Alta resolución.
+
+SVG Ready.
+
+EPS Ready.
+
+AI Ready.
+
+Sin pixelado.
+
+Sin texturas.
+
+Sin ruido.
+
+Sin elementos fotográficos.
+
+Resultado limpio, elegante y perfectamente escalable como una ilustración vectorial profesional.
