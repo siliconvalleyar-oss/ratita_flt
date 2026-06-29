@@ -25,12 +25,8 @@ class Player extends PositionComponent {
   Sprite? _spriteArmCrossed;
   Sprite? _spriteRunRight0;
   Sprite? _spriteRunRight1;
-  Sprite? _spriteRunRight2;
-  Sprite? _spriteRunRight3;
-  Sprite? _spriteRunLeft0;
   Sprite? _spriteJump;
   Sprite? _spriteFront;
-  Sprite? _spriteBack;
   Sprite? _spriteCelebrate0;
   Sprite? _spriteCelebrate1;
   Sprite? _spriteCelebrate2;
@@ -49,10 +45,8 @@ class Player extends PositionComponent {
       _load('ratita_caminando_derecha_01.png'),
       _load('ratita_caminando_derecha_02.png'),
       _load('ratita_caminando_derecha_03.png'),
-      _load('ratita_caminando_a_la_izquierda.png'),
       _load('ratita_saltando.png'),
       _load('ratita_caminando_frente.png'),
-      _load('ratita_espalda_00.png'),
       _load('ratita_festejando_00.png'),
       _load('ratita_festejando_01.png'),
       _load('ratita_festejando_02.png'),
@@ -62,15 +56,11 @@ class Player extends PositionComponent {
     _spriteArmCrossed = results[1];
     _spriteRunRight0 = results[2];
     _spriteRunRight1 = results[3];
-    _spriteRunRight2 = results[4];
-    _spriteRunRight3 = results[5];
-    _spriteRunLeft0 = results[6];
-    _spriteJump = results[7];
-    _spriteFront = results[8];
-    _spriteBack = results[9];
-    _spriteCelebrate0 = results[10];
-    _spriteCelebrate1 = results[11];
-    _spriteCelebrate2 = results[12];
+    _spriteJump = results[4];
+    _spriteFront = results[5];
+    _spriteCelebrate0 = results[6];
+    _spriteCelebrate1 = results[7];
+    _spriteCelebrate2 = results[8];
 
     if (_spriteJump != null || _spriteFront != null) {
       _useSprites = true;
@@ -97,7 +87,7 @@ class Player extends PositionComponent {
   void jump() {
     if (_state != PlayerState.running) return;
     _state = PlayerState.jumping;
-    velocityY = -15;
+    velocityY = -18;
   }
 
   void die() {
@@ -137,7 +127,7 @@ class Player extends PositionComponent {
         _frameTimer += dt * 6;
         if (_frameTimer >= 1) {
           _frameTimer = 0;
-          _frameIndex = (_frameIndex + 1) % 4;
+          _frameIndex = (_frameIndex + 1) % 2;
         }
         if (_walkCycleTimer >= _walkCycleDuration) {
           _isWalking = false;
@@ -217,7 +207,7 @@ class Player extends PositionComponent {
         break;
 
       case PlayerState.dead:
-        (_spriteBack ?? _spriteArmCrossed)?.render(canvas, size: sz);
+        _spriteArmCrossed?.render(canvas, size: sz);
         break;
 
       case PlayerState.celebrating:
@@ -233,17 +223,11 @@ class Player extends PositionComponent {
         if (!_isWalking) {
           _spriteFront?.render(canvas, size: sz);
         } else {
-          final sprite = _frameIndex == 0
-              ? _spriteRunRight0
-              : _frameIndex == 1
-                  ? _spriteRunRight1
-                  : _frameIndex == 2
-                      ? _spriteRunRight2
-                      : _spriteRunRight3;
+          final sprite = _frameIndex == 0 ? _spriteRunRight0 : _spriteRunRight1;
           if (sprite != null) {
             sprite.render(canvas, size: sz);
           } else {
-            (_spriteFront ?? _spriteRunLeft0)?.render(canvas, size: sz);
+            _spriteFront?.render(canvas, size: sz);
           }
         }
         break;
