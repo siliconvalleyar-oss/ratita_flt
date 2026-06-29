@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:ratita_runner/game/ratita_game.dart';
 
-enum PlayerState { menu, running, jumping, dead, celebrating, exploding }
+enum PlayerState { menu, running, jumping, dead, celebrating, exploding, projectile }
 
 class Player extends PositionComponent {
   PlayerState _state = PlayerState.menu;
@@ -23,6 +23,14 @@ class Player extends PositionComponent {
   static const double _stopDuration = 0.6;
   static const double _playerW = 80;
   static const double _playerH = 120;
+
+  int _jumpCount = 0;
+  bool get isProjectile => _state == PlayerState.projectile;
+  bool get isOnGround => _state == PlayerState.running;
+  double _projectileX = 0;
+  double _projectileDir = 1;
+  static const double _projectileSpeed = 120;
+  static const double _projectileGravity = 200;
 
   Sprite? _spriteArmOpen;
   Sprite? _spriteArmCrossed;
@@ -89,9 +97,32 @@ class Player extends PositionComponent {
   }
 
   void jump() {
+    if (_state == PlayerState.dead || _state == PlayerState.exploding) return;
+
+    if (_state == PlayerState.projectile) {
+      returnFromProjectile();
+      return;
+    }
+
     if (_state != PlayerState.running) return;
+
+    _jumpCount++;
     _state = PlayerState.jumping;
     velocityY = -18;
+  }
+
+  void enterProjectile() {
+    _state = PlayerState.projectile;
+    _projectileX = x;
+    _projectileDir = 1;
+    velocityY = -16;
+  }
+
+  void returnFromProjectile() {
+    _state = PlayerState.jumping;
+    velocityY = -22;
+    x = RatitaGame.playerX;
+    _projectileX = x;
   }
 
   void die() {
@@ -112,7 +143,8 @@ class Player extends PositionComponent {
   }
 
   void celebrate() {
-    if (_state == PlayerState.jumping || _state == PlayerState.dead || _state == PlayerState.exploding) return;
+    if (_state == PlayerState.jumping || _state == PlayerState.dead ||
+        _state == PlayerState.exploding || _state == PlayerState.projectile) return;
     _state = PlayerState.celebrating;
     _celebrationTimer = 0;
     _celebrationFrame = 0;
@@ -124,6 +156,7 @@ class Player extends PositionComponent {
     _frameIndex = 0;
     _walkCycleTimer = 0;
     _isWalking = true;
+    _jumpCount = 0;
   }
 
   void goToMenu() {
@@ -174,6 +207,24 @@ class Player extends PositionComponent {
   void updatePhysics(double dt) {
     if (_state == PlayerState.dead || _state == PlayerState.exploding) return;
 
+    if (_state == PlayerState.projectile) {
+      velocityY += _projectileGravity * dt;
+      y += velocityY * dt;
+
+      _projectileX += _projectileDir * _projectileSpeed * dt;
+
+      if (_projectileDir > 0 && _projectileX >= RatitaGame.viewportW - width - 20) {
+        _projectileDir = -1;
+      }
+      x = _projectileX;
+
+      if (y >= RatitaGame.groundY - height) {
+        y = RatitaGame.groundY - height;
+        velocityY = 0;
+      }
+      return;
+    }
+
     if (_state == PlayerState.jumping) {
       velocityY += 0.65;
       y += velocityY;
@@ -183,6 +234,10 @@ class Player extends PositionComponent {
         _state = PlayerState.running;
         _walkCycleTimer = 0;
         _isWalking = true;
+
+        if (_jumpCount > 0 && _jumpCount % 7 == 0) {
+          enterProjectile();
+        }
       }
     }
 
@@ -231,6 +286,7 @@ class Player extends PositionComponent {
           }
           break;
         case PlayerState.jumping:
+        case PlayerState.projectile:
           _spriteJump?.render(canvas, size: sz);
           break;
       }
