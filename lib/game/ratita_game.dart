@@ -36,12 +36,14 @@ class RatitaGame extends FlameGame {
   String _lastHiText = '';
   String _lastScoreText = '';
   int _lastLives = -1;
+  static final Paint _flashPaint = Paint()..color = const Color(0xAABBBBBB);
+  static const List<int> _milestones = [100, 200, 500, 1000, 2000];
 
   VoidCallback? onStateChanged;
 
   static const double groundY = 340;
   static const double viewportW = 900;
-  static const double viewportH = 400;
+  static const double viewportH = 500;
   static const double playerX = 100;
   static const int campoLaJuanitaThreshold = 300;
   static const int celebrationDuration = 2;
@@ -282,8 +284,7 @@ class RatitaGame extends FlameGame {
   }
 
   void _checkMilestones() {
-    final milestones = [100, 200, 500, 1000, 2000];
-    for (final m in milestones) {
+    for (final m in _milestones) {
       if (_scoreSystem.score >= m && _lastMilestoneScore < m) {
         _lastMilestoneScore = m;
         AudioSystem.milestone();
@@ -331,8 +332,7 @@ class RatitaGame extends FlameGame {
 
     // lightning flash overlay
     if (_flashAlpha > 0) {
-      final flashPaint = Paint()..color = Color.fromARGB((_flashAlpha * 180).round(), 255, 255, 255);
-      canvas.drawRect(Rect.fromLTWH(0, 0, size.x, size.y), flashPaint);
+      canvas.drawRect(Rect.fromLTWH(0, 0, size.x, size.y), _flashPaint);
     }
 
     if (_screenState == GameScreenState.playing) {

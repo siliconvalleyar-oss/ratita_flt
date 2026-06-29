@@ -41,7 +41,7 @@ class Ground extends PositionComponent {
 
   Ground()
       : super(
-          size: Vector2(RatitaGame.viewportW, RatitaGame.groundY + 60),
+          size: Vector2(RatitaGame.viewportW, RatitaGame.viewportH),
           position: Vector2(0, 0),
         );
 
@@ -68,7 +68,7 @@ class Ground extends PositionComponent {
     for (int i = 0; i < 60; i++) {
       _rainDrops.add([
         _random.nextDouble() * RatitaGame.viewportW,
-        _random.nextDouble() * RatitaGame.groundY,
+        _random.nextDouble() * RatitaGame.viewportH,
         _random.nextDouble() * 4 + 6,
         _random.nextDouble() * 2 + 1,
       ]);
@@ -108,8 +108,8 @@ class Ground extends PositionComponent {
 
     _cachedSkyPaint = Paint()
       ..shader = Gradient.linear(
-        const Offset(0, 0), Offset(0, groundTop),
-        [topColor, midColor, botColor], [0.0, 0.5, 1.0],
+        const Offset(0, 0), Offset(0, RatitaGame.viewportH),
+        [topColor, midColor, botColor], [0.0, 0.4, 1.0],
       );
 
     _cachedMtnPaint = Paint()..color = _lerpColor(const Color(0xFF6B8E5A), const Color(0xFF1A3A1A), t);
@@ -161,7 +161,7 @@ class Ground extends PositionComponent {
 
     _rebuildCache(t, w, groundTop);
 
-    canvas.drawRect(Rect.fromLTWH(0, 0, w, groundTop), _cachedSkyPaint!);
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, RatitaGame.viewportH), _cachedSkyPaint!);
 
     if (t > 0.3) {
       final moonAlpha = ((t - 0.3) / 0.7).clamp(0.0, 1.0);
@@ -206,7 +206,7 @@ class Ground extends PositionComponent {
       _drawTree(trees[_treeType[i]], canvas, _treeX[i], groundTop, th);
     }
 
-    canvas.drawRect(Rect.fromLTWH(0, groundTop, w, 40), _cachedGroundPaint!);
+    canvas.drawRect(Rect.fromLTWH(0, groundTop, w, RatitaGame.viewportH - groundTop), _cachedGroundPaint!);
     canvas.drawRect(Rect.fromLTWH(0, groundTop, w, 4), _cachedLinePaint!);
     canvas.drawRect(Rect.fromLTWH(0, groundTop + 4, w, 3), _cachedGrassPaint!);
 

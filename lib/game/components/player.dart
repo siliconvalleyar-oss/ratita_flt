@@ -47,6 +47,15 @@ class Player extends PositionComponent {
   double _rotDir = 1;
   final List<List<double>> _particles = [];
 
+  static final Paint _shieldStroke = Paint()
+    ..color = const Color(0x554488FF)
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 4
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+  static final Paint _shieldFill = Paint()
+    ..color = const Color(0x2244AAFF)
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+
   Player() : super(size: Vector2(_playerW, _playerH));
 
   @override
@@ -114,7 +123,7 @@ class Player extends PositionComponent {
 
     _jumpCount++;
     _state = PlayerState.jumping;
-    velocityY = -18;
+    velocityY = -16;
   }
 
   void _startForward() {
@@ -209,27 +218,22 @@ class Player extends PositionComponent {
           _walkCycleTimer = 0;
         }
       }
-      // idle wobble
-      _rotation += _rotDir * 2.5 * dt;
-      if (_rotation.abs() > 15 * pi / 180) {
-        _rotDir *= -1;
-      }
+      _rotation = 0;
+      _rotDir = 1;
     }
     if (_state == PlayerState.jumping) {
-      _rotation += _rotDir * 4 * dt;
+      _rotation += _rotDir * 1.5 * dt;
       if (_rotation.abs() > 15 * pi / 180) {
         _rotDir *= -1;
       }
     }
     if (_state == PlayerState.projectileForward || _state == PlayerState.projectileInPlace || _state == PlayerState.projectileReturn) {
-      _rotation += _rotDir * 5 * dt;
-      if (_rotation.abs() > 25 * pi / 180) {
+      _rotation += _rotDir * 3 * dt;
+      if (_rotation.abs() > 20 * pi / 180) {
         _rotDir *= -1;
       }
     }
-    if (_state == PlayerState.running || _state == PlayerState.jumping) {
-      // keep rotation going
-    } else if (_state != PlayerState.celebrating) {
+    if (_state != PlayerState.jumping && !isProjectile) {
       _rotation = 0;
     }
     if (_state == PlayerState.celebrating) {
@@ -298,6 +302,7 @@ class Player extends PositionComponent {
         y = RatitaGame.groundY - height;
         x = _startX;
         velocityY = 0;
+        _rotation = 0;
         _state = PlayerState.running;
         _walkCycleTimer = 0;
         _isWalking = true;
@@ -306,7 +311,7 @@ class Player extends PositionComponent {
     }
 
     if (_state == PlayerState.jumping) {
-      velocityY += 0.65;
+      velocityY += 0.55;
       y += velocityY;
       if (y >= RatitaGame.groundY - height) {
         y = RatitaGame.groundY - height;
@@ -314,6 +319,7 @@ class Player extends PositionComponent {
         _state = PlayerState.running;
         _walkCycleTimer = 0;
         _isWalking = true;
+        _rotation = 0;
 
         if (_jumpCount > 0 && _jumpCount % 7 == 0) {
           _startForward();
@@ -338,16 +344,8 @@ class Player extends PositionComponent {
 
     // shield BEHIND sprite
     if (hasShield) {
-      final shieldPaint = Paint()
-        ..color = const Color(0x554488FF)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 4
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-      canvas.drawCircle(Offset(cx, cy), width / 2 + 12, shieldPaint);
-      final shieldFill = Paint()
-        ..color = const Color(0x2244AAFF)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-      canvas.drawCircle(Offset(cx, cy), width / 2 + 10, shieldFill);
+      canvas.drawCircle(Offset(cx, cy), width / 2 + 12, _shieldStroke);
+      canvas.drawCircle(Offset(cx, cy), width / 2 + 10, _shieldFill);
     }
 
     // rotate
@@ -368,8 +366,7 @@ class Player extends PositionComponent {
           for (final p in _particles) {
             final alpha = (p[4] * 255).clamp(0, 255).toInt();
             final firePaint = Paint()
-              ..color = Color.fromARGB(alpha, 255, (180 + p[4] * 75).toInt().clamp(180, 255), 0)
-              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+              ..color = Color.fromARGB(alpha, 255, (180 + p[4] * 75).toInt().clamp(180, 255), 0);
             canvas.drawCircle(Offset(p[0], p[1]), 4 + p[4] * 6, firePaint);
           }
           _spriteImpact?.render(canvas, size: sz);
