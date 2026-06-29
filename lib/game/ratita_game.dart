@@ -141,7 +141,6 @@ class RatitaGame extends FlameGame {
     if (_screenState == GameScreenState.gameOver) return;
 
     _scoreSystem.update(dt);
-    _ground.scroll(_scoreSystem.speed, dt);
 
     _gameTime += dt;
 
@@ -168,11 +167,13 @@ class RatitaGame extends FlameGame {
       _isRaining = true;
       _ground.setRaining(true);
       AudioSystem.startRain();
+      AudioSystem.startCrickets();
       _thunderTimer = _random.nextDouble() * 3 + 1;
     } else if (!_isNight && wasNight) {
       _isRaining = false;
       _ground.setRaining(false);
       AudioSystem.stopRain();
+      AudioSystem.stopCrickets();
     }
 
     // thunder during rain
@@ -181,6 +182,7 @@ class RatitaGame extends FlameGame {
       if (_thunderTimer <= 0) {
         AudioSystem.thunder();
         _flashAlpha = 1.0;
+        _ground.triggerBolt();
         _thunderTimer = _random.nextDouble() * 5 + 2;
       }
     }

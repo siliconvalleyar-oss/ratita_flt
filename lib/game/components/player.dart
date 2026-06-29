@@ -34,15 +34,13 @@ class Player extends PositionComponent {
   bool _useSprites = false;
   bool get hasSprites => _useSprites;
 
-  Player() : super(size: Vector2(70, 100));
+  Player() : super(size: Vector2(80, 120));
 
   @override
   Future<void> onLoad() async {
     final results = await Future.wait([
       _load('ratita_brazo_abierto.png'),
       _load('ratita_brazo_cruzado.png'),
-      _load('ratita_caminando_derecha_00.png'),
-      _load('ratita_caminando_derecha_01.png'),
       _load('ratita_caminando_derecha_02.png'),
       _load('ratita_caminando_derecha_03.png'),
       _load('ratita_saltando.png'),
