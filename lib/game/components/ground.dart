@@ -25,6 +25,7 @@ class Ground extends PositionComponent {
   final List<List<double>> _rainDrops = [];
   final List<double> _treeX = [];
   final List<int> _treeType = [];
+  double _cloudTime = 0;
 
   Path? _cachedMtnPath;
   Path? _cachedHillPath;
@@ -140,6 +141,7 @@ class Ground extends PositionComponent {
   @override
   void update(double dt) {
     super.update(dt);
+    _cloudTime += dt;
     if (_boltTimer > 0) { _boltTimer -= dt; if (_boltTimer <= 0) _showBolt = false; }
     if (_isRaining) {
       final w = RatitaGame.viewportW;
@@ -180,15 +182,17 @@ class Ground extends PositionComponent {
       }
     }
 
-    _drawCloud(_cloud0, canvas, 50, 30, 120, 50);
-    _drawCloud(_cloud1, canvas, 250, 55, 70, 35);
-    _drawCloud(_cloud2, canvas, 500, 20, 100, 45);
-    _drawCloud(_cloud1, canvas, 100, 80, 80, 38);
-    _drawCloud(_cloudLong, canvas, 350, 100, 160, 45);
-    _drawCloud(_cloud0, canvas, 650, 65, 75, 36);
-    _drawCloud(_cloud2, canvas, 800, 130, 100, 45);
-    _drawCloud(_cloudLong, canvas, 150, 150, 180, 50);
-    _drawCloud(_cloud1, canvas, 700, 125, 70, 33);
+    final ct = _cloudTime;
+
+    _drawCloud(_cloud0, canvas, 50 + sin(ct * 0.3) * 3, 30 + cos(ct * 0.25) * 2, 120, 50);
+    _drawCloud(_cloud1, canvas, 250 + sin(ct * 0.22 + 1) * 4, 55 + cos(ct * 0.18 + 2) * 3, 70, 35);
+    _drawCloud(_cloud2, canvas, 500 + sin(ct * 0.28 + 2) * 3, 20 + cos(ct * 0.2 + 1) * 2, 100, 45);
+    _drawCloud(_cloud1, canvas, 100 + sin(ct * 0.15 + 3) * 4, 80 + cos(ct * 0.22 + 3) * 3, 80, 38);
+    _drawCloud(_cloudLong, canvas, 350 + sin(ct * 0.2 + 4) * 3, 100 + cos(ct * 0.15 + 4) * 2, 160, 45);
+    _drawCloud(_cloud0, canvas, 650 + sin(ct * 0.25 + 5) * 4, 65 + cos(ct * 0.3 + 5) * 3, 75, 36);
+    _drawCloud(_cloud2, canvas, 800 + sin(ct * 0.18 + 6) * 3, 130 + cos(ct * 0.2 + 6) * 2, 100, 45);
+    _drawCloud(_cloudLong, canvas, 150 + sin(ct * 0.22 + 7) * 4, 150 + cos(ct * 0.16 + 7) * 3, 180, 50);
+    _drawCloud(_cloud1, canvas, 700 + sin(ct * 0.3 + 8) * 3, 125 + cos(ct * 0.25 + 8) * 2, 70, 33);
 
     if (_showBolt) {
       final bolt = _random.nextBool() ? _bolt0 : _bolt1;
