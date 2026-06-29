@@ -43,6 +43,8 @@ class Player extends PositionComponent {
   bool get hasSprites => _useSprites;
   bool get isExploding => _state == PlayerState.exploding;
 
+  final List<List<double>> _particles = [];
+
   Player() : super(size: Vector2(_playerW, _playerH));
 
   @override
@@ -104,7 +106,9 @@ class Player extends PositionComponent {
       return;
     }
 
-    if (_state != PlayerState.running) return;
+    if (_state == PlayerState.projectileForward || _state == PlayerState.projectileReturn) return;
+
+    if (_state == PlayerState.jumping) return;
 
     _jumpCount++;
     _state = PlayerState.jumping;
@@ -143,6 +147,17 @@ class Player extends PositionComponent {
 
   void explode() {
     _state = PlayerState.exploding;
+    _particles.clear();
+    final rng = Random();
+    for (int i = 0; i < 20; i++) {
+      _particles.add([
+        width / 2,
+        height / 2,
+        (rng.nextDouble() - 0.5) * 200,
+        (rng.nextDouble() - 0.5) * 200,
+        rng.nextDouble() * 0.4 + 0.3,
+      ]);
+    }
   }
 
   void celebrate() {
@@ -208,7 +223,17 @@ class Player extends PositionComponent {
   }
 
   void updatePhysics(double dt) {
-    if (_state == PlayerState.dead || _state == PlayerState.exploding) return;
+    if (_state == PlayerState.dead) return;
+
+    if (_state == PlayerState.exploding) {
+      for (final p in _particles) {
+        p[0] += p[2] * dt;
+        p[1] += p[3] * dt;
+        p[4] -= dt * 1.5;
+      }
+      _particles.removeWhere((p) => p[4] <= 0);
+      return;
+    }
 
     if (_state == PlayerState.projectileForward) {
       velocityY += 180 * dt;
@@ -277,6 +302,28 @@ class Player extends PositionComponent {
   void render(Canvas canvas) {
     final sz = Vector2(width, height);
 
+    // shield BEHIND sprite
+    if (hasShield) {
+      final shieldPaint = Paint()
+        ..color = const Color(0x554488FF)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+      canvas.drawCircle(
+        Offset(width / 2, height / 2),
+        width / 2 + 12,
+        shieldPaint,
+      );
+      final shieldFill = Paint()
+        ..color = const Color(0x2244AAFF)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+      canvas.drawCircle(
+        Offset(width / 2, height / 2),
+        width / 2 + 10,
+        shieldFill,
+      );
+    }
+
     if (_useSprites) {
       switch (_state) {
         case PlayerState.menu:
@@ -286,6 +333,13 @@ class Player extends PositionComponent {
           _spriteArmCrossed?.render(canvas, size: sz);
           break;
         case PlayerState.exploding:
+          for (final p in _particles) {
+            final alpha = (p[4] * 255).clamp(0, 255).toInt();
+            final firePaint = Paint()
+              ..color = Color.fromARGB(alpha, 255, (180 + p[4] * 75).toInt().clamp(180, 255), 0)
+              ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2);
+            canvas.drawCircle(Offset(p[0], p[1]), 4 + p[4] * 6, firePaint);
+          }
           _spriteImpact?.render(canvas, size: sz);
           break;
         case PlayerState.celebrating:
@@ -319,18 +373,6 @@ class Player extends PositionComponent {
       final paint = Paint()..color = const Color(0xFF8B4513);
       canvas.drawRRect(
         RRect.fromRectXY(Rect.fromLTWH(8, 8, width - 16, height - 16), 8, 8),
-        paint,
-      );
-    }
-
-    if (hasShield) {
-      final paint = Paint()
-        ..color = const Color(0x6600FF00)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3;
-      canvas.drawCircle(
-        Offset(width / 2, height / 2),
-        width / 2 + 6,
         paint,
       );
     }

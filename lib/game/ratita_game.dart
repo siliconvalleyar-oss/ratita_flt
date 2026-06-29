@@ -29,6 +29,14 @@ class RatitaGame extends FlameGame {
   double _flashAlpha = 0;
   double _explodeTimer = 0;
 
+  TextPainter? _tpHi;
+  TextPainter? _tpScore;
+  TextPainter? _tpLives;
+  TextPainter? _tpCampo;
+  String _lastHiText = '';
+  String _lastScoreText = '';
+  int _lastLives = -1;
+
   VoidCallback? onStateChanged;
 
   static const double groundY = 340;
@@ -71,7 +79,7 @@ class RatitaGame extends FlameGame {
     _friends.clear();
     _spawnTimer = 2.0;
     _friendTimer = 10.0;
-    _gameTime = 0;
+    _gameTime = 10.0;
     _isNight = false;
     _isRaining = false;
     _thunderTimer = 0;
@@ -143,36 +151,37 @@ class RatitaGame extends FlameGame {
 
     _gameTime += dt;
 
-    // night every 40 seconds: 0-40 day, 40-80 night, 80-120 day, etc
+    // 0-40 day, 40-50 transition, 50-70 night+rain, 70-80 transition back to day
     final cyclePos = _gameTime % 80.0;
     final wasNight = _isNight;
-    if (cyclePos >= 40 && cyclePos < 80) {
+    if (cyclePos >= 40 && cyclePos < 70) {
       _isNight = true;
-      final nightFade = ((cyclePos - 40) / 10).clamp(0.0, 1.0);
+      final nightFade = cyclePos < 50
+          ? ((cyclePos - 40) / 10).clamp(0.0, 1.0)
+          : 1.0;
       _ground.setNightProgress(nightFade);
     } else {
       _isNight = false;
       if (cyclePos < 10) {
         _ground.setNightProgress(1.0 - cyclePos / 10);
       } else if (cyclePos >= 70) {
-        _ground.setNightProgress((cyclePos - 70) / 10);
+        _ground.setNightProgress(1.0 - (cyclePos - 70) / 10);
       } else {
         _ground.setNightProgress(0.0);
       }
     }
 
-    // start rain when night starts
-    if (_isNight && !wasNight) {
+    // rain+thunder during night phase (50-70)
+    final shouldRain = cyclePos >= 50 && cyclePos < 70;
+    if (shouldRain && !_isRaining) {
       _isRaining = true;
       _ground.setRaining(true);
       AudioSystem.startRain();
-      AudioSystem.startCrickets();
-      _thunderTimer = _random.nextDouble() * 3 + 1;
-    } else if (!_isNight && wasNight) {
+      _thunderTimer = _random.nextDouble() * 2 + 1;
+    } else if (!shouldRain && _isRaining) {
       _isRaining = false;
       _ground.setRaining(false);
       AudioSystem.stopRain();
-      AudioSystem.stopCrickets();
     }
 
     // thunder during rain
@@ -329,49 +338,54 @@ class RatitaGame extends FlameGame {
       );
 
       if (scoreSystem.highScore > 0) {
-        final tp = TextPainter(
+        final hiText = 'HI ${scoreSystem.highScore.toString().padLeft(5, '0')}';
+        if (hiText != _lastHiText) {
+          _lastHiText = hiText;
+          _tpHi = TextPainter(
+            text: TextSpan(text: hiText, style: textStyle),
+            textDirection: TextDirection.ltr,
+          )..layout();
+        }
+        _tpHi?.paint(canvas, Offset(size.x - (_tpHi?.width ?? 0) - 10, 14));
+      }
+
+      final scoreText = scoreSystem.score.toString().padLeft(5, '0');
+      if (scoreText != _lastScoreText) {
+        _lastScoreText = scoreText;
+        _tpScore = TextPainter(
+          text: TextSpan(text: scoreText, style: textStyle),
+          textDirection: TextDirection.ltr,
+        )..layout();
+      }
+      _tpScore?.paint(canvas, Offset(size.x - (_tpScore?.width ?? 0) - 10, 42));
+
+      if (_player.lives != _lastLives) {
+        _lastLives = _player.lives;
+        _tpLives = TextPainter(
           text: TextSpan(
-            text: 'HI ${scoreSystem.highScore.toString().padLeft(5, '0')}',
-            style: textStyle,
+            text: '❤' * _player.lives,
+            style: const TextStyle(fontSize: 18, color: Color(0xFFCC0000)),
           ),
           textDirection: TextDirection.ltr,
         )..layout();
-        tp.paint(canvas, Offset(size.x - tp.width - 10, 14));
       }
+      _tpLives?.paint(canvas, const Offset(10, 42));
 
-      final tp2 = TextPainter(
-        text: TextSpan(
-          text: scoreSystem.score.toString().padLeft(5, '0'),
-          style: textStyle,
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp2.paint(canvas, Offset(size.x - tp2.width - 10, 42));
-
-      // lives
-      final heartText = '❤' * _player.lives;
-      final tpLives = TextPainter(
-        text: TextSpan(
-          text: heartText,
-          style: const TextStyle(fontSize: 18, color: Color(0xFFCC0000)),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tpLives.paint(canvas, const Offset(10, 42));
-
-      if (_inCampoLaJuanita) {
-        const campStyle = TextStyle(
-          fontSize: 14,
-          color: Color(0xFF2E7D32),
-          fontFamily: 'monospace',
-          fontWeight: FontWeight.bold,
-        );
-        final tp3 = TextPainter(
-          text: const TextSpan(text: 'Campo La Juanita', style: campStyle),
+      if (_inCampoLaJuanita && _tpCampo == null) {
+        _tpCampo = TextPainter(
+          text: const TextSpan(
+            text: 'Campo La Juanita',
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF2E7D32),
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           textDirection: TextDirection.ltr,
         )..layout();
-        tp3.paint(canvas, const Offset(10, 14));
       }
+      _tpCampo?.paint(canvas, const Offset(10, 14));
     }
   }
 }

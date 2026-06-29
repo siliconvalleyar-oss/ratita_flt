@@ -26,6 +26,10 @@ class Ground extends PositionComponent {
   final List<double> _treeX = [];
   final List<int> _treeType = [];
 
+  Path? _cachedMtnPath;
+  Path? _cachedHillPath;
+  double _cachedNightT = -1;
+
   Ground()
       : super(
           size: Vector2(RatitaGame.viewportW, RatitaGame.groundY + 60),
@@ -52,7 +56,7 @@ class Ground extends PositionComponent {
       _starY.add(_random.nextDouble() * 200 + 20);
       _starSize.add(_random.nextDouble() * 2 + 0.5);
     }
-    for (int i = 0; i < 80; i++) {
+    for (int i = 0; i < 60; i++) {
       _rainDrops.add([
         _random.nextDouble() * RatitaGame.viewportW,
         _random.nextDouble() * RatitaGame.groundY,
@@ -112,6 +116,28 @@ class Ground extends PositionComponent {
     }
   }
 
+  Path _buildMountainPath(double w, double groundTop) {
+    final path = Path();
+    for (double i = 0; i < w; i += 160) {
+      path.moveTo(i, groundTop);
+      path.quadraticBezierTo(i + 40, groundTop - 50 - (i * 0.1) % 20, i + 80, groundTop);
+      path.quadraticBezierTo(i + 120, groundTop - 30 - (i * 0.1) % 20, i + 160, groundTop);
+    }
+    path.close();
+    return path;
+  }
+
+  Path _buildHillPath(double w, double groundTop) {
+    final path = Path();
+    for (double i = 0; i < w; i += 120) {
+      path.moveTo(i, groundTop);
+      path.quadraticBezierTo(i + 30, groundTop - 25, i + 60, groundTop);
+      path.quadraticBezierTo(i + 90, groundTop - 15, i + 120, groundTop);
+    }
+    path.close();
+    return path;
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
@@ -140,7 +166,6 @@ class Ground extends PositionComponent {
     final groundTop = RatitaGame.groundY;
     final t = _nightProgress;
 
-    // sky gradient
     final topColor = _lerpColor(const Color(0xFF4A90D9), const Color(0xFF0A0A2E), t);
     final midColor = _lerpColor(const Color(0xFF87CEEB), const Color(0xFF1A1A4E), t);
     final botColor = _lerpColor(const Color(0xFFB0E0E6), const Color(0xFF2A2A5E), t);
@@ -154,15 +179,14 @@ class Ground extends PositionComponent {
       );
     canvas.drawRect(Rect.fromLTWH(0, 0, w, groundTop), skyPaint);
 
-    // moon
     if (t > 0.3) {
       final moonAlpha = ((t - 0.3) / 0.7).clamp(0.0, 1.0);
       final moonPaint = Paint()..color = Color.fromARGB((moonAlpha * 255).round(), 255, 255, 220);
       canvas.drawCircle(Offset(w - 120, 65), 30, moonPaint);
-      canvas.drawCircle(Offset(w - 112, 60), 26, Paint()..color = _lerpColor(const Color(0xFF87CEEB), const Color(0xFF1A1A4E), t));
+      final moonHolePaint = Paint()..color = _lerpColor(const Color(0xFF87CEEB), const Color(0xFF1A1A4E), t);
+      canvas.drawCircle(Offset(w - 112, 60), 26, moonHolePaint);
     }
 
-    // stars
     if (t > 0.2) {
       final starAlpha = ((t - 0.2) / 0.8).clamp(0.0, 1.0);
       final starPaint = Paint();
@@ -173,7 +197,6 @@ class Ground extends PositionComponent {
       }
     }
 
-    // clouds (static positions)
     _drawCloud(_cloud0, canvas, 50, 30, 120, 50);
     _drawCloud(_cloud1, canvas, 250, 55, 70, 35);
     _drawCloud(_cloud2, canvas, 500, 20, 100, 45);
@@ -184,7 +207,6 @@ class Ground extends PositionComponent {
     _drawCloud(_cloudLong, canvas, 150, 150, 180, 50);
     _drawCloud(_cloud1, canvas, 700, 125, 70, 33);
 
-    // lightning bolt
     if (_showBolt) {
       final bolt = _random.nextBool() ? _bolt0 : _bolt1;
       if (bolt != null) {
@@ -204,57 +226,39 @@ class Ground extends PositionComponent {
       }
     }
 
-    // mountains (static)
+    // cached mountain/hill paths
+    if (_cachedNightT != t) {
+      _cachedNightT = t;
+      _cachedMtnPath = _buildMountainPath(w, groundTop);
+      _cachedHillPath = _buildHillPath(w, groundTop);
+    }
+
     final mtnColor = _lerpColor(const Color(0xFF6B8E5A), const Color(0xFF1A3A1A), t);
-    final mountainPaint = Paint()..color = mtnColor;
-    for (double i = 0; i < w; i += 160) {
-      final path = Path()
-        ..moveTo(i, groundTop)
-        ..quadraticBezierTo(i + 40, groundTop - 50 - (i * 0.1) % 20, i + 80, groundTop)
-        ..quadraticBezierTo(i + 120, groundTop - 30 - (i * 0.1) % 20, i + 160, groundTop)
-        ..close();
-      canvas.drawPath(path, mountainPaint);
-    }
+    canvas.drawPath(_cachedMtnPath!, Paint()..color = mtnColor);
 
-    // hills (static)
     final hillColor = _lerpColor(const Color(0xFF7CAA5E), const Color(0xFF2A5A2A), t);
-    final hillPaint = Paint()..color = hillColor;
-    for (double i = 0; i < w; i += 120) {
-      final path = Path()
-        ..moveTo(i, groundTop)
-        ..quadraticBezierTo(i + 30, groundTop - 25, i + 60, groundTop)
-        ..quadraticBezierTo(i + 90, groundTop - 15, i + 120, groundTop)
-        ..close();
-      canvas.drawPath(path, hillPaint);
-    }
+    canvas.drawPath(_cachedHillPath!, Paint()..color = hillColor);
 
-    // trees (static)
     final trees = [_tree0, _tree1, _tree2, _tree3];
     for (int i = 0; i < _treeX.length; i++) {
       final th = 55.0 + _treeType[i] * 12;
       _drawTree(trees[_treeType[i]], canvas, _treeX[i], groundTop, th);
     }
 
-    // ground base
-    final groundColor = _lerpColor(const Color(0xFF8B7355), const Color(0xFF3A2A15), t);
-    canvas.drawRect(Rect.fromLTWH(0, groundTop, w, 40), Paint()..color = groundColor);
+    final groundPaint = Paint()..color = _lerpColor(const Color(0xFF8B7355), const Color(0xFF3A2A15), t);
+    canvas.drawRect(Rect.fromLTWH(0, groundTop, w, 40), groundPaint);
 
-    // ground top line
-    final lineColor = _lerpColor(const Color(0xFF6B5B3E), const Color(0xFF2A1A0E), t);
-    canvas.drawRect(Rect.fromLTWH(0, groundTop, w, 4), Paint()..color = lineColor);
+    final linePaint = Paint()..color = _lerpColor(const Color(0xFF6B5B3E), const Color(0xFF2A1A0E), t);
+    canvas.drawRect(Rect.fromLTWH(0, groundTop, w, 4), linePaint);
 
-    // grass
-    final grassColor = _lerpColor(const Color(0xFF5D8A3C), const Color(0xFF1A4A1A), t);
-    canvas.drawRect(Rect.fromLTWH(0, groundTop + 4, w, 3), Paint()..color = grassColor);
+    final grassPaint = Paint()..color = _lerpColor(const Color(0xFF5D8A3C), const Color(0xFF1A4A1A), t);
+    canvas.drawRect(Rect.fromLTWH(0, groundTop + 4, w, 3), grassPaint);
 
-    // road dashes (static)
-    final dashColor = _lerpColor(const Color(0xFFCCCCCC), const Color(0xFF444444), t);
-    final dashPaint = Paint()..color = dashColor;
+    final dashPaint = Paint()..color = _lerpColor(const Color(0xFFCCCCCC), const Color(0xFF444444), t);
     for (double i = 0; i < w; i += 32) {
       canvas.drawRect(Rect.fromLTWH(i, groundTop + 10, 12, 3), dashPaint);
     }
 
-    // rain
     if (_isRaining) {
       final rainPaint = Paint()..color = const Color.fromARGB(120, 180, 200, 255);
       for (final drop in _rainDrops) {
