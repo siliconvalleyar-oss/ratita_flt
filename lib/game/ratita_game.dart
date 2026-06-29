@@ -25,7 +25,7 @@ class RatitaGame extends FlameGame {
 
   VoidCallback? onStateChanged;
 
-  static const double groundY = 380;
+  static const double groundY = 340;
   static const double viewportW = 900;
   static const double viewportH = 400;
   static const double playerX = 100;
@@ -129,6 +129,9 @@ class RatitaGame extends FlameGame {
 
     _scoreSystem.update(dt);
     _ground.scroll(_scoreSystem.speed, dt);
+
+    final nightT = ((_scoreSystem.score - 400) / 600).clamp(0.0, 1.0);
+    _ground.setNightProgress(nightT);
 
     _checkCampoLaJuanita();
     _checkMilestones();
