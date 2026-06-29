@@ -226,16 +226,14 @@ class Player extends PositionComponent {
       velocityY += 220 * dt;
       y += velocityY * dt;
       x += 200 * dt;
-      if (y >= RatitaGame.groundY - height + 40) { y = RatitaGame.groundY - height + 40; velocityY = -12; }
-      if (velocityY > 0 && y >= RatitaGame.groundY - height) { y = RatitaGame.groundY - height; velocityY = 0; _startInPlace(); }
+      if (y >= RatitaGame.groundY - height) { y = RatitaGame.groundY - height; velocityY = 0; _startInPlace(); }
       return;
     }
 
     if (_state == PlayerState.projectileInPlace) {
       velocityY += 250 * dt;
       y += velocityY * dt;
-      if (y >= RatitaGame.groundY - height + 30) { y = RatitaGame.groundY - height + 30; velocityY = -10; }
-      if (velocityY > 0 && y >= RatitaGame.groundY - height) { y = RatitaGame.groundY - height; velocityY = 0; }
+      if (y >= RatitaGame.groundY - height) { y = RatitaGame.groundY - height; velocityY = 0; }
       return;
     }
 
@@ -251,7 +249,7 @@ class Player extends PositionComponent {
     }
 
     if (_state == PlayerState.jumping) {
-      velocityY += 0.55;
+      velocityY += 0.65;
       y += velocityY;
       if (y >= RatitaGame.groundY - height) {
         y = RatitaGame.groundY - height; velocityY = 0;

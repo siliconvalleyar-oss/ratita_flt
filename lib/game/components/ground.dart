@@ -75,7 +75,7 @@ class Ground extends PositionComponent {
       ]);
     }
     final w = RatitaGame.viewportW;
-    for (double x = 30; x < w; x += 120 + _random.nextDouble() * 60) {
+    for (double x = 200; x < w; x += 100 + _random.nextDouble() * 80) {
       _treeX.add(x);
       _treeType.add(_random.nextInt(4));
     }
@@ -122,17 +122,19 @@ class Ground extends PositionComponent {
 
     if (_cachedMtnPath == null) {
       _cachedMtnPath = Path();
-      for (double i = 0; i < w; i += 160) {
+      for (double i = 0; i < w; i += 140 + (_random.nextDouble() * 40)) {
+        final mh = 30.0 + _random.nextDouble() * 40;
         _cachedMtnPath!.moveTo(i, groundTop);
-        _cachedMtnPath!.quadraticBezierTo(i + 40, groundTop - 50 - (i * 0.1) % 20, i + 80, groundTop);
-        _cachedMtnPath!.quadraticBezierTo(i + 120, groundTop - 30 - (i * 0.1) % 20, i + 160, groundTop);
+        _cachedMtnPath!.quadraticBezierTo(i + 35, groundTop - mh, i + 70, groundTop);
+        _cachedMtnPath!.quadraticBezierTo(i + 105, groundTop - mh * 0.6, i + 140, groundTop);
       }
       _cachedMtnPath!.close();
       _cachedHillPath = Path();
-      for (double i = 0; i < w; i += 120) {
+      for (double i = 0; i < w; i += 100 + (_random.nextDouble() * 30)) {
+        final hh = 15.0 + _random.nextDouble() * 20;
         _cachedHillPath!.moveTo(i, groundTop);
-        _cachedHillPath!.quadraticBezierTo(i + 30, groundTop - 25, i + 60, groundTop);
-        _cachedHillPath!.quadraticBezierTo(i + 90, groundTop - 15, i + 120, groundTop);
+        _cachedHillPath!.quadraticBezierTo(i + 25, groundTop - hh, i + 50, groundTop);
+        _cachedHillPath!.quadraticBezierTo(i + 75, groundTop - hh * 0.5, i + 100, groundTop);
       }
       _cachedHillPath!.close();
     }
