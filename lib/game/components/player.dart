@@ -27,12 +27,14 @@ class Player extends PositionComponent {
 
   int _jumpCount = 0;
   double _startX = 0;
-  double _forwardX = 0;
 
   Sprite? _spriteArmOpen;
   Sprite? _spriteArmCrossed;
-  Sprite? _spriteRunRight0;
-  Sprite? _spriteRunRight1;
+  Sprite? _spriteWalk0;
+  Sprite? _spriteWalk1;
+  Sprite? _spriteWalk2;
+  Sprite? _spriteWalk3;
+  Sprite? _spriteWalk4;
   Sprite? _spriteJump;
   Sprite? _spriteFront;
   Sprite? _spriteCelebrate0;
@@ -45,8 +47,6 @@ class Player extends PositionComponent {
   bool get hasSprites => _useSprites;
   bool get isExploding => _state == PlayerState.exploding;
 
-  double _rotation = 0;
-  double _rotDir = 1;
   final List<List<double>> _particles = [];
   double _phraseTimer = 0;
   String _currentPhrase = '';
@@ -64,36 +64,25 @@ class Player extends PositionComponent {
     ..color = const Color(0x2244AAFF)
     ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
 
-  Player() : super(size: Vector2(_playerW, _playerH));
-
   static const List<String> _phrases = [
-    'Mi Chiquitaa!',
-    'La Gladys',
-    'La Nancy',
-    'Una rata',
-    'Mi Boquita',
-    'Soy tacaño',
-    'No tengo un Mango',
-    'Ayudame tanque',
-    'Jugame la quinela',
-    'No hay plata',
-    'A parar',
-    'Es una Hermosura el perrito',
-    'Jorge',
-    'Mi negra',
-    'Un sapo',
-    'La Jirafa',
-    'Agarre las 4 cifras',
-    'Al peletin',
+    'Mi Chiquitaa!', 'La Gladys', 'La Nancy', 'Una rata', 'Mi Boquita',
+    'Soy tacaño', 'No tengo un Mango', 'Ayudame tanque', 'Jugame la quinela',
+    'No hay plata', 'A parar', 'Es una Hermosura el perrito', 'Jorge',
+    'Mi negra', 'Un sapo', 'La Jirafa', 'Agarre las 4 cifras', 'Al peletin',
   ];
+
+  Player() : super(size: Vector2(_playerW, _playerH));
 
   @override
   Future<void> onLoad() async {
     final results = await Future.wait([
       _load('ratita_brazo_abierto.png'),
       _load('ratita_brazo_cruzado.png'),
+      _load('ratita_caminando_derecha_00.png'),
+      _load('ratita_caminando_derecha_01.png'),
       _load('ratita_caminando_derecha_02.png'),
       _load('ratita_caminando_derecha_03.png'),
+      _load('ratita_caminando_derecha_04.png'),
       _load('ratita_saltando.png'),
       _load('ratita_caminando_frente.png'),
       _load('ratita_festejando_00.png'),
@@ -105,57 +94,41 @@ class Player extends PositionComponent {
 
     _spriteArmOpen = results[0];
     _spriteArmCrossed = results[1];
-    _spriteRunRight0 = results[2];
-    _spriteRunRight1 = results[3];
-    _spriteJump = results[4];
-    _spriteFront = results[5];
-    _spriteCelebrate0 = results[6];
-    _spriteCelebrate1 = results[7];
-    _spriteCelebrate2 = results[8];
-    _spriteImpact = results[9];
-    _spriteFrases = results[10];
+    _spriteWalk0 = results[2];
+    _spriteWalk1 = results[3];
+    _spriteWalk2 = results[4];
+    _spriteWalk3 = results[5];
+    _spriteWalk4 = results[6];
+    _spriteJump = results[7];
+    _spriteFront = results[8];
+    _spriteCelebrate0 = results[9];
+    _spriteCelebrate1 = results[10];
+    _spriteCelebrate2 = results[11];
+    _spriteImpact = results[12];
+    _spriteFrases = results[13];
 
-    if (_spriteJump != null || _spriteFront != null) {
-      _useSprites = true;
-    }
-
+    if (_spriteJump != null || _spriteFront != null) _useSprites = true;
     x = RatitaGame.playerX;
     y = RatitaGame.groundY - height;
   }
 
   Future<Sprite?> _load(String filename) async {
-    try {
-      return await Sprite.load('ratita/$filename');
-    } catch (e) {
-      return null;
-    }
+    try { return await Sprite.load('ratita/$filename'); } catch (_) { return null; }
   }
 
-  Rect get hitbox {
-    const m = 8.0;
-    return Rect.fromLTWH(x + m, y + m, width - m * 2, height - m * 2);
-  }
+  Rect get hitbox => Rect.fromLTWH(x + 8, y + 8, width - 16, height - 16);
 
   bool get isProjectile => _state == PlayerState.projectileForward ||
-      _state == PlayerState.projectileInPlace ||
-      _state == PlayerState.projectileReturn;
+      _state == PlayerState.projectileInPlace || _state == PlayerState.projectileReturn;
 
   void jump() {
     if (_state == PlayerState.dead || _state == PlayerState.exploding) return;
-
-    if (_state == PlayerState.projectileInPlace) {
-      _startReturn();
-      return;
-    }
-
-    if (_state == PlayerState.projectileForward || _state == PlayerState.projectileReturn) return;
-
+    if (_state == PlayerState.projectileInPlace) { _startReturn(); return; }
+    if (isProjectile) return;
     if (_state == PlayerState.jumping) return;
-
     _jumpCount++;
     _state = PlayerState.jumping;
     velocityY = -16;
-
     final rng = Random();
     int idx;
     do { idx = rng.nextInt(_phrases.length); } while (idx == _lastPhraseIdx && _phrases.length > 1);
@@ -166,31 +139,22 @@ class Player extends PositionComponent {
 
   void _startForward() {
     _startX = RatitaGame.playerX;
-    _forwardX = RatitaGame.viewportW * 0.55;
     _state = PlayerState.projectileForward;
     velocityY = -22;
   }
 
-  void _startInPlace() {
-    _state = PlayerState.projectileInPlace;
-    velocityY = -18;
-  }
+  void _startInPlace() { _state = PlayerState.projectileInPlace; velocityY = -18; }
 
   void _startReturn() {
     _state = PlayerState.projectileReturn;
     velocityY = -24;
   }
 
-  void die() {
-    _state = PlayerState.dead;
-  }
+  void die() { _state = PlayerState.dead; }
 
   bool loseLife() {
     lives--;
-    if (lives <= 0) {
-      die();
-      return true;
-    }
+    if (lives <= 0) { die(); return true; }
     return false;
   }
 
@@ -199,19 +163,12 @@ class Player extends PositionComponent {
     _particles.clear();
     final rng = Random();
     for (int i = 0; i < 20; i++) {
-      _particles.add([
-        width / 2,
-        height / 2,
-        (rng.nextDouble() - 0.5) * 200,
-        (rng.nextDouble() - 0.5) * 200,
-        rng.nextDouble() * 0.4 + 0.3,
-      ]);
+      _particles.add([width / 2, height / 2, (rng.nextDouble() - 0.5) * 200, (rng.nextDouble() - 0.5) * 200, rng.nextDouble() * 0.4 + 0.3]);
     }
   }
 
   void celebrate() {
-    if (_state == PlayerState.jumping || _state == PlayerState.dead ||
-        _state == PlayerState.exploding || isProjectile) return;
+    if (_state == PlayerState.jumping || _state == PlayerState.dead || _state == PlayerState.exploding || isProjectile) return;
     _state = PlayerState.celebrating;
     _celebrationTimer = 0;
     _celebrationFrame = 0;
@@ -226,9 +183,7 @@ class Player extends PositionComponent {
     _jumpCount = 0;
   }
 
-  void goToMenu() {
-    _state = PlayerState.menu;
-  }
+  void goToMenu() { _state = PlayerState.menu; }
 
   void updateMenuAnimation(double dt) {
     _menuBounceTimer += dt;
@@ -239,46 +194,12 @@ class Player extends PositionComponent {
   void updateRunningAnimation(double dt) {
     if (_state == PlayerState.running) {
       _walkCycleTimer += dt;
-
       if (_isWalking) {
-        _frameTimer += dt * 6;
-        if (_frameTimer >= 1) {
-          _frameTimer = 0;
-          _frameIndex = (_frameIndex + 1) % 2;
-        }
-        if (_walkCycleTimer >= _walkCycleDuration) {
-          _isWalking = false;
-          _walkCycleTimer = 0;
-        }
+        _frameTimer += dt * 5;
+        if (_frameTimer >= 1) { _frameTimer = 0; _frameIndex = (_frameIndex + 1) % 5; }
+        if (_walkCycleTimer >= _walkCycleDuration) { _isWalking = false; _walkCycleTimer = 0; }
       } else {
-        if (_walkCycleTimer >= _stopDuration) {
-          _isWalking = true;
-          _walkCycleTimer = 0;
-        }
-      }
-      _rotation = 0;
-      _rotDir = 1;
-    }
-    if (_state == PlayerState.jumping) {
-      _rotation += _rotDir * 1.5 * dt;
-      if (_rotation.abs() > 15 * pi / 180) {
-        _rotDir *= -1;
-      }
-    }
-    if (_state == PlayerState.projectileForward || _state == PlayerState.projectileInPlace || _state == PlayerState.projectileReturn) {
-      _rotation += _rotDir * 3 * dt;
-      if (_rotation.abs() > 20 * pi / 180) {
-        _rotDir *= -1;
-      }
-    }
-    if (_state != PlayerState.jumping && !isProjectile) {
-      _rotation = 0;
-    }
-
-    if (_phraseTimer > 0) {
-      _phraseTimer -= dt;
-      if (_phraseTimer <= 0) {
-        _currentPhrase = '';
+        if (_walkCycleTimer >= _stopDuration) { _isWalking = true; _walkCycleTimer = 0; }
       }
     }
     if (_state == PlayerState.celebrating) {
@@ -286,24 +207,17 @@ class Player extends PositionComponent {
       if (_celebrationTimer >= 0.3) {
         _celebrationTimer = 0;
         _celebrationFrame = (_celebrationFrame + 1) % 3;
-        if (_celebrationFrame == 0) {
-          _state = PlayerState.running;
-          _walkCycleTimer = 0;
-          _isWalking = true;
-        }
+        if (_celebrationFrame == 0) { _state = PlayerState.running; _walkCycleTimer = 0; _isWalking = true; }
       }
     }
+    if (_phraseTimer > 0) { _phraseTimer -= dt; if (_phraseTimer <= 0) _currentPhrase = ''; }
   }
 
   void updatePhysics(double dt) {
     if (_state == PlayerState.dead) return;
 
     if (_state == PlayerState.exploding) {
-      for (final p in _particles) {
-        p[0] += p[2] * dt;
-        p[1] += p[3] * dt;
-        p[4] -= dt * 1.5;
-      }
+      for (final p in _particles) { p[0] += p[2] * dt; p[1] += p[3] * dt; p[4] -= dt * 1.5; }
       _particles.removeWhere((p) => p[4] <= 0);
       return;
     }
@@ -312,45 +226,26 @@ class Player extends PositionComponent {
       velocityY += 220 * dt;
       y += velocityY * dt;
       x += 200 * dt;
-      if (y >= RatitaGame.groundY - height + 40) {
-        y = RatitaGame.groundY - height + 40;
-        velocityY = -12;
-      }
-      if (velocityY > 0 && y >= RatitaGame.groundY - height) {
-        y = RatitaGame.groundY - height;
-        velocityY = 0;
-        _startInPlace();
-      }
+      if (y >= RatitaGame.groundY - height + 40) { y = RatitaGame.groundY - height + 40; velocityY = -12; }
+      if (velocityY > 0 && y >= RatitaGame.groundY - height) { y = RatitaGame.groundY - height; velocityY = 0; _startInPlace(); }
       return;
     }
 
     if (_state == PlayerState.projectileInPlace) {
       velocityY += 250 * dt;
       y += velocityY * dt;
-      if (y >= RatitaGame.groundY - height + 30) {
-        y = RatitaGame.groundY - height + 30;
-        velocityY = -10;
-      }
-      if (velocityY > 0 && y >= RatitaGame.groundY - height) {
-        y = RatitaGame.groundY - height;
-        velocityY = 0;
-      }
+      if (y >= RatitaGame.groundY - height + 30) { y = RatitaGame.groundY - height + 30; velocityY = -10; }
+      if (velocityY > 0 && y >= RatitaGame.groundY - height) { y = RatitaGame.groundY - height; velocityY = 0; }
       return;
     }
 
     if (_state == PlayerState.projectileReturn) {
       velocityY += 200 * dt;
       y += velocityY * dt;
-      final dx = _startX - x;
-      x += dx * 4 * dt;
+      x += (_startX - x) * 4 * dt;
       if (y >= RatitaGame.groundY - height) {
-        y = RatitaGame.groundY - height;
-        x = _startX;
-        velocityY = 0;
-        _rotation = 0;
-        _state = PlayerState.running;
-        _walkCycleTimer = 0;
-        _isWalking = true;
+        y = RatitaGame.groundY - height; x = _startX; velocityY = 0;
+        _state = PlayerState.running; _walkCycleTimer = 0; _isWalking = true;
       }
       return;
     }
@@ -359,26 +254,13 @@ class Player extends PositionComponent {
       velocityY += 0.55;
       y += velocityY;
       if (y >= RatitaGame.groundY - height) {
-        y = RatitaGame.groundY - height;
-        velocityY = 0;
-        _state = PlayerState.running;
-        _walkCycleTimer = 0;
-        _isWalking = true;
-        _rotation = 0;
-
-        if (_jumpCount > 0 && _jumpCount % 7 == 0) {
-          _startForward();
-        }
+        y = RatitaGame.groundY - height; velocityY = 0;
+        _state = PlayerState.running; _walkCycleTimer = 0; _isWalking = true;
+        if (_jumpCount > 0 && _jumpCount % 7 == 0) _startForward();
       }
     }
 
-    if (hasShield) {
-      _shieldTimer += dt;
-      if (_shieldTimer > 5) {
-        hasShield = false;
-        _shieldTimer = 0;
-      }
-    }
+    if (hasShield) { _shieldTimer += dt; if (_shieldTimer > 5) { hasShield = false; _shieldTimer = 0; } }
   }
 
   @override
@@ -387,54 +269,30 @@ class Player extends PositionComponent {
     final cx = width / 2;
     final cy = height / 2;
 
-    // shield BEHIND sprite
     if (hasShield) {
       canvas.drawCircle(Offset(cx, cy), width / 2 + 12, _shieldStroke);
       canvas.drawCircle(Offset(cx, cy), width / 2 + 10, _shieldFill);
     }
 
-    // rotate
-    canvas.save();
-    canvas.translate(cx, cy);
-    canvas.rotate(_rotation);
-    canvas.translate(-cx, -cy);
-
     if (_useSprites) {
       switch (_state) {
-        case PlayerState.menu:
-          _spriteArmOpen?.render(canvas, size: sz);
-          break;
-        case PlayerState.dead:
-          _spriteArmCrossed?.render(canvas, size: sz);
-          break;
+        case PlayerState.menu: _spriteArmOpen?.render(canvas, size: sz); break;
+        case PlayerState.dead: _spriteArmCrossed?.render(canvas, size: sz); break;
         case PlayerState.exploding:
           for (final p in _particles) {
             final alpha = (p[4] * 255).clamp(0, 255).toInt();
-            final firePaint = Paint()
-              ..color = Color.fromARGB(alpha, 255, (180 + p[4] * 75).toInt().clamp(180, 255), 0);
-            canvas.drawCircle(Offset(p[0], p[1]), 4 + p[4] * 6, firePaint);
+            canvas.drawCircle(Offset(p[0].toDouble(), p[1].toDouble()), 4 + p[4] * 6,
+              Paint()..color = Color.fromARGB(alpha, 255, (180 + p[4] * 75).toInt().clamp(180, 255), 0));
           }
           _spriteImpact?.render(canvas, size: sz);
           break;
         case PlayerState.celebrating:
-          final sprite = _celebrationFrame == 0
-              ? _spriteCelebrate0
-              : _celebrationFrame == 1
-                  ? _spriteCelebrate1
-                  : _spriteCelebrate2;
+          final sprite = _celebrationFrame == 0 ? _spriteCelebrate0 : _celebrationFrame == 1 ? _spriteCelebrate1 : _spriteCelebrate2;
           sprite?.render(canvas, size: sz);
           break;
         case PlayerState.running:
-          if (!_isWalking) {
-            _spriteFront?.render(canvas, size: sz);
-          } else {
-            final sprite = _frameIndex == 0 ? _spriteRunRight0 : _spriteRunRight1;
-            if (sprite != null) {
-              sprite.render(canvas, size: sz);
-            } else {
-              _spriteFront?.render(canvas, size: sz);
-            }
-          }
+          if (!_isWalking) { _spriteFront?.render(canvas, size: sz); }
+          else { [_spriteWalk0, _spriteWalk1, _spriteWalk2, _spriteWalk3, _spriteWalk4][_frameIndex]?.render(canvas, size: sz); }
           break;
         case PlayerState.jumping:
         case PlayerState.projectileForward:
@@ -444,13 +302,7 @@ class Player extends PositionComponent {
           break;
       }
     } else {
-      final paint = Paint()..color = const Color(0xFF8B4513);
-      canvas.drawRRect(
-        RRect.fromRectXY(Rect.fromLTWH(8, 8, width - 16, height - 16), 8, 8),
-        paint,
-      );
+      canvas.drawRRect(RRect.fromRectXY(Rect.fromLTWH(8, 8, width - 16, height - 16), 8, 8), Paint()..color = const Color(0xFF8B4513));
     }
-
-    canvas.restore();
   }
 }
