@@ -392,6 +392,31 @@ class RatitaGame extends FlameGame {
         )..layout();
       }
       _tpCampo?.paint(canvas, const Offset(10, 14));
+
+      // speech bubble — fixed center-top
+      if (_player.phraseTimer > 0 && _player.currentPhrase.isNotEmpty) {
+        final bubbleW = 168.0;
+        final bubbleH = 88.0;
+        final bubbleX = (size.x - bubbleW) / 2;
+        final bubbleY = 30.0;
+
+        _player.frasesSprite?.render(canvas, position: Vector2(bubbleX, bubbleY), size: Vector2(bubbleW, bubbleH));
+
+        final tp = TextPainter(
+          text: TextSpan(
+            text: _player.currentPhrase,
+            style: const TextStyle(
+              fontSize: 13,
+              color: Color(0xFF333333),
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+          maxLines: 3,
+        )..layout(maxWidth: bubbleW - 20);
+        tp.paint(canvas, Offset(bubbleX + 10, bubbleY + 10));
+      }
     }
   }
 }

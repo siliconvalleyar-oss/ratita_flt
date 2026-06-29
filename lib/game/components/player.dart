@@ -51,6 +51,9 @@ class Player extends PositionComponent {
   double _phraseTimer = 0;
   String _currentPhrase = '';
   int _lastPhraseIdx = -1;
+  Sprite? get frasesSprite => _spriteFrases;
+  double get phraseTimer => _phraseTimer;
+  String get currentPhrase => _currentPhrase;
 
   static final Paint _shieldStroke = Paint()
     ..color = const Color(0x554488FF)
@@ -449,30 +452,5 @@ class Player extends PositionComponent {
     }
 
     canvas.restore();
-
-    // speech bubble — frases.png + text
-    if (_phraseTimer > 0 && _currentPhrase.isNotEmpty) {
-      final bubbleW = 160.0;
-      final bubbleH = 50.0;
-      final bubbleX = cx - bubbleW / 2;
-      final bubbleY = -bubbleH - 10;
-
-      _spriteFrases?.render(canvas, position: Vector2(bubbleX, bubbleY), size: Vector2(bubbleW, bubbleH));
-
-      final phrasePaint = Paint()..color = const Color(0xFF333333);
-      final tp = TextPainter(
-        text: TextSpan(
-          text: _currentPhrase,
-          style: const TextStyle(
-            fontSize: 11,
-            color: Color(0xFF333333),
-            fontFamily: 'monospace',
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, Offset(cx - tp.width / 2, bubbleY + (bubbleH - tp.height) / 2));
-    }
   }
 }
