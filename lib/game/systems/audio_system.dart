@@ -8,6 +8,8 @@ class AudioSystem {
   static const int _maxPlayers = 3;
   static String? _currentCricket;
   static bool _cricketPaused = false;
+  static String? _currentRain;
+  static bool _rainPaused = false;
 
   static Future<void> init() async {
     if (_initialised) return;
@@ -22,6 +24,9 @@ class AudioSystem {
       'gallina_00.mp3',
       'gallina_01.mp3',
       'chancho_00.mp3',
+      'lluvia_00.mp3',
+      'relampago_00.mp3',
+      'relampago_01.mp3',
     ]);
     _initialised = true;
   }
@@ -87,6 +92,43 @@ class AudioSystem {
     if (_cricketPaused && _currentCricket != null) {
       FlameAudio.bgm.resume();
       _cricketPaused = false;
+    }
+    if (_rainPaused && _currentRain != null) {
+      FlameAudio.bgm.resume();
+      _rainPaused = false;
+    }
+  }
+
+  static void startRain() {
+    if (!_initialised) return;
+    stopRain();
+    _currentRain = 'lluvia_00.mp3';
+    FlameAudio.bgm.play(_currentRain!, volume: 0.25);
+  }
+
+  static void stopRain() {
+    if (_currentRain != null) {
+      FlameAudio.bgm.stop();
+      _currentRain = null;
+    }
+  }
+
+  static void thunder() {
+    final r = Random().nextBool();
+    _play(r ? 'relampago_00.mp3' : 'relampago_01.mp3', volume: 0.6);
+  }
+
+  static void pauseRain() {
+    if (_currentRain != null) {
+      FlameAudio.bgm.pause();
+      _rainPaused = true;
+    }
+  }
+
+  static void resumeRain() {
+    if (_rainPaused && _currentRain != null) {
+      FlameAudio.bgm.resume();
+      _rainPaused = false;
     }
   }
 }

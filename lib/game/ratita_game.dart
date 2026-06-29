@@ -22,6 +22,11 @@ class RatitaGame extends FlameGame {
   final Random _random = Random();
   bool _inCampoLaJuanita = false;
   int _lastMilestoneScore = 0;
+  double _gameTime = 0;
+  bool _isNight = false;
+  bool _isRaining = false;
+  double _thunderTimer = 0;
+  double _flashAlpha = 0;
 
   VoidCallback? onStateChanged;
 
@@ -65,7 +70,13 @@ class RatitaGame extends FlameGame {
     _friends.clear();
     _spawnTimer = 2.0;
     _friendTimer = 10.0;
+    _gameTime = 0;
+    _isNight = false;
+    _isRaining = false;
+    _thunderTimer = 0;
+    _flashAlpha = 0;
     AudioSystem.stopCrickets();
+    AudioSystem.stopRain();
     removeAll(children);
     _player = Player();
     _ground = Ground();
@@ -80,6 +91,7 @@ class RatitaGame extends FlameGame {
     _player.die();
     _scoreSystem.checkHighScore();
     AudioSystem.stopCrickets();
+    AudioSystem.stopRain();
     AudioSystem.death();
     onStateChanged?.call();
   }
@@ -88,6 +100,7 @@ class RatitaGame extends FlameGame {
     _screenState = GameScreenState.menu;
     _inCampoLaJuanita = false;
     AudioSystem.stopCrickets();
+    AudioSystem.stopRain();
     removeAll(children);
     _player = Player();
     _ground = Ground();
@@ -130,8 +143,52 @@ class RatitaGame extends FlameGame {
     _scoreSystem.update(dt);
     _ground.scroll(_scoreSystem.speed, dt);
 
-    final nightT = ((_scoreSystem.score - 400) / 600).clamp(0.0, 1.0);
-    _ground.setNightProgress(nightT);
+    _gameTime += dt;
+
+    // night every 40 seconds: 0-40 day, 40-80 night, 80-120 day, etc
+    final cyclePos = _gameTime % 80.0;
+    final wasNight = _isNight;
+    if (cyclePos >= 40 && cyclePos < 80) {
+      _isNight = true;
+      final nightFade = ((cyclePos - 40) / 10).clamp(0.0, 1.0);
+      _ground.setNightProgress(nightFade);
+    } else {
+      _isNight = false;
+      if (cyclePos < 10) {
+        _ground.setNightProgress(1.0 - cyclePos / 10);
+      } else if (cyclePos >= 70) {
+        _ground.setNightProgress((cyclePos - 70) / 10);
+      } else {
+        _ground.setNightProgress(0.0);
+      }
+    }
+
+    // start rain when night starts
+    if (_isNight && !wasNight) {
+      _isRaining = true;
+      _ground.setRaining(true);
+      AudioSystem.startRain();
+      _thunderTimer = _random.nextDouble() * 3 + 1;
+    } else if (!_isNight && wasNight) {
+      _isRaining = false;
+      _ground.setRaining(false);
+      AudioSystem.stopRain();
+    }
+
+    // thunder during rain
+    if (_isRaining) {
+      _thunderTimer -= dt;
+      if (_thunderTimer <= 0) {
+        AudioSystem.thunder();
+        _flashAlpha = 1.0;
+        _thunderTimer = _random.nextDouble() * 5 + 2;
+      }
+    }
+
+    // flash fade
+    if (_flashAlpha > 0) {
+      _flashAlpha = (_flashAlpha - dt * 3).clamp(0.0, 1.0);
+    }
 
     _checkCampoLaJuanita();
     _checkMilestones();
@@ -234,6 +291,12 @@ class RatitaGame extends FlameGame {
   @override
   void render(Canvas canvas) {
     super.render(canvas);
+
+    // lightning flash overlay
+    if (_flashAlpha > 0) {
+      final flashPaint = Paint()..color = Color.fromARGB((_flashAlpha * 180).round(), 255, 255, 255);
+      canvas.drawRect(Rect.fromLTWH(0, 0, size.x, size.y), flashPaint);
+    }
 
     if (_screenState == GameScreenState.playing) {
       const textStyle = TextStyle(
