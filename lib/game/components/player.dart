@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:ui';
+import 'package:flutter/painting.dart';
 import 'package:flame/components.dart';
 import 'package:ratita_runner/game/ratita_game.dart';
 
@@ -38,6 +39,7 @@ class Player extends PositionComponent {
   Sprite? _spriteCelebrate1;
   Sprite? _spriteCelebrate2;
   Sprite? _spriteImpact;
+  Sprite? _spriteFrases;
 
   bool _useSprites = false;
   bool get hasSprites => _useSprites;
@@ -46,6 +48,9 @@ class Player extends PositionComponent {
   double _rotation = 0;
   double _rotDir = 1;
   final List<List<double>> _particles = [];
+  double _phraseTimer = 0;
+  String _currentPhrase = '';
+  int _lastPhraseIdx = -1;
 
   static final Paint _shieldStroke = Paint()
     ..color = const Color(0x554488FF)
@@ -57,6 +62,27 @@ class Player extends PositionComponent {
     ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
 
   Player() : super(size: Vector2(_playerW, _playerH));
+
+  static const List<String> _phrases = [
+    'Mi Chiquitaa!',
+    'La Gladys',
+    'La Nancy',
+    'Una rata',
+    'Mi Boquita',
+    'Soy tacaño',
+    'No tengo un Mango',
+    'Ayudame tanque',
+    'Jugame la quinela',
+    'No hay plata',
+    'A parar',
+    'Es una Hermosura el perrito',
+    'Jorge',
+    'Mi negra',
+    'Un sapo',
+    'La Jirafa',
+    'Agarre las 4 cifras',
+    'Al peletin',
+  ];
 
   @override
   Future<void> onLoad() async {
@@ -71,6 +97,7 @@ class Player extends PositionComponent {
       _load('ratita_festejando_01.png'),
       _load('ratita_festejando_02.png'),
       _load('impact_00.png'),
+      _load('frases.png'),
     ]);
 
     _spriteArmOpen = results[0];
@@ -83,6 +110,7 @@ class Player extends PositionComponent {
     _spriteCelebrate1 = results[7];
     _spriteCelebrate2 = results[8];
     _spriteImpact = results[9];
+    _spriteFrases = results[10];
 
     if (_spriteJump != null || _spriteFront != null) {
       _useSprites = true;
@@ -124,6 +152,13 @@ class Player extends PositionComponent {
     _jumpCount++;
     _state = PlayerState.jumping;
     velocityY = -16;
+
+    final rng = Random();
+    int idx;
+    do { idx = rng.nextInt(_phrases.length); } while (idx == _lastPhraseIdx && _phrases.length > 1);
+    _lastPhraseIdx = idx;
+    _currentPhrase = _phrases[idx];
+    _phraseTimer = 2.5;
   }
 
   void _startForward() {
@@ -235,6 +270,13 @@ class Player extends PositionComponent {
     }
     if (_state != PlayerState.jumping && !isProjectile) {
       _rotation = 0;
+    }
+
+    if (_phraseTimer > 0) {
+      _phraseTimer -= dt;
+      if (_phraseTimer <= 0) {
+        _currentPhrase = '';
+      }
     }
     if (_state == PlayerState.celebrating) {
       _celebrationTimer += dt;
@@ -407,5 +449,30 @@ class Player extends PositionComponent {
     }
 
     canvas.restore();
+
+    // speech bubble — frases.png + text
+    if (_phraseTimer > 0 && _currentPhrase.isNotEmpty) {
+      final bubbleW = 160.0;
+      final bubbleH = 50.0;
+      final bubbleX = cx - bubbleW / 2;
+      final bubbleY = -bubbleH - 10;
+
+      _spriteFrases?.render(canvas, position: Vector2(bubbleX, bubbleY), size: Vector2(bubbleW, bubbleH));
+
+      final phrasePaint = Paint()..color = const Color(0xFF333333);
+      final tp = TextPainter(
+        text: TextSpan(
+          text: _currentPhrase,
+          style: const TextStyle(
+            fontSize: 11,
+            color: Color(0xFF333333),
+            fontFamily: 'monospace',
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(cx - tp.width / 2, bubbleY + (bubbleH - tp.height) / 2));
+    }
   }
 }
