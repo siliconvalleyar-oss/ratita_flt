@@ -16,11 +16,17 @@ class Player extends PositionComponent {
   double _menuBounceOffset = 0;
   double _celebrationTimer = 0;
   int _celebrationFrame = 0;
+  double _walkCycleTimer = 0;
+  bool _isWalking = true;
+  static const double _walkCycleDuration = 1.5;
+  static const double _stopDuration = 0.6;
 
   Sprite? _spriteArmOpen;
   Sprite? _spriteArmCrossed;
   Sprite? _spriteRunRight0;
   Sprite? _spriteRunRight1;
+  Sprite? _spriteRunRight2;
+  Sprite? _spriteRunRight3;
   Sprite? _spriteRunLeft0;
   Sprite? _spriteJump;
   Sprite? _spriteFront;
@@ -28,6 +34,12 @@ class Player extends PositionComponent {
   Sprite? _spriteCelebrate0;
   Sprite? _spriteCelebrate1;
   Sprite? _spriteCelebrate2;
+  Sprite? _spriteEat0;
+  Sprite? _spriteEat1;
+  Sprite? _spriteEat2;
+  Sprite? _spriteEat3;
+  int _eatFrame = 0;
+  double _eatTimer = 0;
 
   bool _useSprites = false;
   bool get hasSprites => _useSprites;
@@ -41,6 +53,8 @@ class Player extends PositionComponent {
       _load('ratita_brazo_cruzado.png'),
       _load('ratita_caminando_derecha_00.png'),
       _load('ratita_caminando_derecha_01.png'),
+      _load('ratita_caminando_derecha_02.png'),
+      _load('ratita_caminando_derecha_03.png'),
       _load('ratita_caminando_a_la_izquierda.png'),
       _load('ratita_saltando.png'),
       _load('ratita_caminando_frente.png'),
@@ -48,19 +62,29 @@ class Player extends PositionComponent {
       _load('ratita_festejando_00.png'),
       _load('ratita_festejando_01.png'),
       _load('ratita_festejando_02.png'),
+      _load('ave_comiendo_maiz_00.png'),
+      _load('ave_comiendo_maiz_01.png'),
+      _load('ave_comiendo_maiz_02.png'),
+      _load('ave_comiendo_maiz_03.png'),
     ]);
 
     _spriteArmOpen = results[0];
     _spriteArmCrossed = results[1];
     _spriteRunRight0 = results[2];
     _spriteRunRight1 = results[3];
-    _spriteRunLeft0 = results[4];
-    _spriteJump = results[5];
-    _spriteFront = results[6];
-    _spriteBack = results[7];
-    _spriteCelebrate0 = results[8];
-    _spriteCelebrate1 = results[9];
-    _spriteCelebrate2 = results[10];
+    _spriteRunRight2 = results[4];
+    _spriteRunRight3 = results[5];
+    _spriteRunLeft0 = results[6];
+    _spriteJump = results[7];
+    _spriteFront = results[8];
+    _spriteBack = results[9];
+    _spriteCelebrate0 = results[10];
+    _spriteCelebrate1 = results[11];
+    _spriteCelebrate2 = results[12];
+    _spriteEat0 = results[13];
+    _spriteEat1 = results[14];
+    _spriteEat2 = results[15];
+    _spriteEat3 = results[16];
 
     if (_spriteJump != null || _spriteFront != null) {
       _useSprites = true;
@@ -95,7 +119,7 @@ class Player extends PositionComponent {
   }
 
   void celebrate() {
-    if (_state != PlayerState.running) return;
+    if (_state == PlayerState.jumping || _state == PlayerState.dead) return;
     _state = PlayerState.celebrating;
     _celebrationTimer = 0;
     _celebrationFrame = 0;
@@ -105,6 +129,8 @@ class Player extends PositionComponent {
     _state = PlayerState.running;
     _frameTimer = 0;
     _frameIndex = 0;
+    _walkCycleTimer = 0;
+    _isWalking = true;
   }
 
   void goToMenu() {
@@ -119,10 +145,30 @@ class Player extends PositionComponent {
 
   void updateRunningAnimation(double dt) {
     if (_state == PlayerState.running) {
-      _frameTimer += dt * 8;
-      if (_frameTimer >= 1) {
-        _frameTimer = 0;
-        _frameIndex = (_frameIndex + 1) % 2;
+      _walkCycleTimer += dt;
+
+      if (_isWalking) {
+        _frameTimer += dt * 6;
+        if (_frameTimer >= 1) {
+          _frameTimer = 0;
+          _frameIndex = (_frameIndex + 1) % 4;
+        }
+        if (_walkCycleTimer >= _walkCycleDuration) {
+          _isWalking = false;
+          _walkCycleTimer = 0;
+          _eatFrame = 0;
+          _eatTimer = 0;
+        }
+      } else {
+        _eatTimer += dt;
+        if (_eatTimer >= 0.25) {
+          _eatTimer = 0;
+          _eatFrame = (_eatFrame + 1) % 4;
+        }
+        if (_walkCycleTimer >= _stopDuration) {
+          _isWalking = true;
+          _walkCycleTimer = 0;
+        }
       }
     }
     if (_state == PlayerState.celebrating) {
@@ -130,12 +176,17 @@ class Player extends PositionComponent {
       if (_celebrationTimer >= 0.3) {
         _celebrationTimer = 0;
         _celebrationFrame = (_celebrationFrame + 1) % 3;
+        if (_celebrationFrame == 0) {
+          _state = PlayerState.running;
+          _walkCycleTimer = 0;
+          _isWalking = true;
+        }
       }
     }
   }
 
   void updatePhysics(double dt) {
-    if (_state == PlayerState.dead || _state == PlayerState.celebrating) return;
+    if (_state == PlayerState.dead) return;
 
     if (_state == PlayerState.jumping) {
       velocityY += 0.65;
@@ -144,6 +195,8 @@ class Player extends PositionComponent {
         y = RatitaGame.groundY - height;
         velocityY = 0;
         _state = PlayerState.running;
+        _walkCycleTimer = 0;
+        _isWalking = true;
       }
     }
 
@@ -198,11 +251,28 @@ class Player extends PositionComponent {
         break;
 
       case PlayerState.running:
-        final sprite = _frameIndex == 0 ? _spriteRunRight0 : _spriteRunRight1;
-        if (sprite != null) {
-          sprite.render(canvas, size: sz);
+        if (!_isWalking) {
+          final eatSprite = _eatFrame == 0
+              ? _spriteEat0
+              : _eatFrame == 1
+                  ? _spriteEat1
+                  : _eatFrame == 2
+                      ? _spriteEat2
+                      : _spriteEat3;
+          eatSprite?.render(canvas, size: sz);
         } else {
-          (_spriteFront ?? _spriteRunLeft0)?.render(canvas, size: sz);
+          final sprite = _frameIndex == 0
+              ? _spriteRunRight0
+              : _frameIndex == 1
+                  ? _spriteRunRight1
+                  : _frameIndex == 2
+                      ? _spriteRunRight2
+                      : _spriteRunRight3;
+          if (sprite != null) {
+            sprite.render(canvas, size: sz);
+          } else {
+            (_spriteFront ?? _spriteRunLeft0)?.render(canvas, size: sz);
+          }
         }
         break;
 

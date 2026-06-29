@@ -175,6 +175,7 @@ class RatitaGame extends FlameGame {
         e.passed = true;
         _scoreSystem.score += 10;
         AudioSystem.score();
+        _player.celebrate();
       }
     }
 
