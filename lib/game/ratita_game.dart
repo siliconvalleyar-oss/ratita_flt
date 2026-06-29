@@ -151,28 +151,34 @@ class RatitaGame extends FlameGame {
 
     _gameTime += dt;
 
-    // 0-40 day, 40-50 transition, 50-70 night+rain, 70-80 transition back to day
-    final cyclePos = _gameTime % 80.0;
+    // 0-20 day, 20-30 sunset, 30-50 night+rain, 50-60 back to day
+    final cyclePos = _gameTime % 60.0;
     final wasNight = _isNight;
-    if (cyclePos >= 40 && cyclePos < 70) {
+
+    if (cyclePos >= 20 && cyclePos < 30) {
+      // sunset transition
+      _isNight = false;
+      _ground.setNightProgress((cyclePos - 20) / 10);
+    } else if (cyclePos >= 30 && cyclePos < 50) {
+      // night + rain
       _isNight = true;
-      final nightFade = cyclePos < 50
-          ? ((cyclePos - 40) / 10).clamp(0.0, 1.0)
-          : 1.0;
-      _ground.setNightProgress(nightFade);
+      _ground.setNightProgress(1.0);
+    } else if (cyclePos >= 50 && cyclePos < 60) {
+      // transition back to day
+      _isNight = false;
+      _ground.setNightProgress(1.0 - (cyclePos - 50) / 10);
     } else {
       _isNight = false;
-      if (cyclePos < 10) {
-        _ground.setNightProgress(1.0 - cyclePos / 10);
-      } else if (cyclePos >= 70) {
-        _ground.setNightProgress(1.0 - (cyclePos - 70) / 10);
-      } else {
-        _ground.setNightProgress(0.0);
-      }
+      _ground.setNightProgress(0.0);
     }
 
-    // rain+thunder during night phase (50-70)
-    final shouldRain = cyclePos >= 50 && cyclePos < 70;
+    // crickets when darkening starts (18-20s)
+    if (cyclePos >= 18 && cyclePos < 20 && !_isNight) {
+      AudioSystem.startCrickets();
+    }
+
+    // rain+thunder during night phase (30-50)
+    final shouldRain = cyclePos >= 30 && cyclePos < 50;
     if (shouldRain && !_isRaining) {
       _isRaining = true;
       _ground.setRaining(true);

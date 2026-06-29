@@ -43,6 +43,8 @@ class Player extends PositionComponent {
   bool get hasSprites => _useSprites;
   bool get isExploding => _state == PlayerState.exploding;
 
+  double _rotation = 0;
+  double _rotDir = 1;
   final List<List<double>> _particles = [];
 
   Player() : super(size: Vector2(_playerW, _playerH));
@@ -119,17 +121,17 @@ class Player extends PositionComponent {
     _startX = RatitaGame.playerX;
     _forwardX = RatitaGame.viewportW * 0.55;
     _state = PlayerState.projectileForward;
-    velocityY = -16;
+    velocityY = -22;
   }
 
   void _startInPlace() {
     _state = PlayerState.projectileInPlace;
-    velocityY = -15;
+    velocityY = -18;
   }
 
   void _startReturn() {
     _state = PlayerState.projectileReturn;
-    velocityY = -20;
+    velocityY = -24;
   }
 
   void die() {
@@ -207,6 +209,28 @@ class Player extends PositionComponent {
           _walkCycleTimer = 0;
         }
       }
+      // idle wobble
+      _rotation += _rotDir * 2.5 * dt;
+      if (_rotation.abs() > 15 * pi / 180) {
+        _rotDir *= -1;
+      }
+    }
+    if (_state == PlayerState.jumping) {
+      _rotation += _rotDir * 4 * dt;
+      if (_rotation.abs() > 15 * pi / 180) {
+        _rotDir *= -1;
+      }
+    }
+    if (_state == PlayerState.projectileForward || _state == PlayerState.projectileInPlace || _state == PlayerState.projectileReturn) {
+      _rotation += _rotDir * 5 * dt;
+      if (_rotation.abs() > 25 * pi / 180) {
+        _rotDir *= -1;
+      }
+    }
+    if (_state == PlayerState.running || _state == PlayerState.jumping) {
+      // keep rotation going
+    } else if (_state != PlayerState.celebrating) {
+      _rotation = 0;
     }
     if (_state == PlayerState.celebrating) {
       _celebrationTimer += dt;
@@ -236,10 +260,14 @@ class Player extends PositionComponent {
     }
 
     if (_state == PlayerState.projectileForward) {
-      velocityY += 180 * dt;
+      velocityY += 220 * dt;
       y += velocityY * dt;
-      x += 180 * dt;
-      if (y >= RatitaGame.groundY - height) {
+      x += 200 * dt;
+      if (y >= RatitaGame.groundY - height + 40) {
+        y = RatitaGame.groundY - height + 40;
+        velocityY = -12;
+      }
+      if (velocityY > 0 && y >= RatitaGame.groundY - height) {
         y = RatitaGame.groundY - height;
         velocityY = 0;
         _startInPlace();
@@ -248,9 +276,13 @@ class Player extends PositionComponent {
     }
 
     if (_state == PlayerState.projectileInPlace) {
-      velocityY += 200 * dt;
+      velocityY += 250 * dt;
       y += velocityY * dt;
-      if (y >= RatitaGame.groundY - height) {
+      if (y >= RatitaGame.groundY - height + 30) {
+        y = RatitaGame.groundY - height + 30;
+        velocityY = -10;
+      }
+      if (velocityY > 0 && y >= RatitaGame.groundY - height) {
         y = RatitaGame.groundY - height;
         velocityY = 0;
       }
@@ -258,11 +290,11 @@ class Player extends PositionComponent {
     }
 
     if (_state == PlayerState.projectileReturn) {
-      velocityY += 180 * dt;
+      velocityY += 200 * dt;
       y += velocityY * dt;
       final dx = _startX - x;
       x += dx * 4 * dt;
-      if (y >= RatitaGame.groundY - height && x.abs() < _startX.abs() + 2) {
+      if (y >= RatitaGame.groundY - height) {
         y = RatitaGame.groundY - height;
         x = _startX;
         velocityY = 0;
@@ -301,6 +333,8 @@ class Player extends PositionComponent {
   @override
   void render(Canvas canvas) {
     final sz = Vector2(width, height);
+    final cx = width / 2;
+    final cy = height / 2;
 
     // shield BEHIND sprite
     if (hasShield) {
@@ -309,20 +343,18 @@ class Player extends PositionComponent {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-      canvas.drawCircle(
-        Offset(width / 2, height / 2),
-        width / 2 + 12,
-        shieldPaint,
-      );
+      canvas.drawCircle(Offset(cx, cy), width / 2 + 12, shieldPaint);
       final shieldFill = Paint()
         ..color = const Color(0x2244AAFF)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-      canvas.drawCircle(
-        Offset(width / 2, height / 2),
-        width / 2 + 10,
-        shieldFill,
-      );
+      canvas.drawCircle(Offset(cx, cy), width / 2 + 10, shieldFill);
     }
+
+    // rotate
+    canvas.save();
+    canvas.translate(cx, cy);
+    canvas.rotate(_rotation);
+    canvas.translate(-cx, -cy);
 
     if (_useSprites) {
       switch (_state) {
@@ -376,5 +408,7 @@ class Player extends PositionComponent {
         paint,
       );
     }
+
+    canvas.restore();
   }
 }
