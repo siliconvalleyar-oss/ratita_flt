@@ -30,6 +30,7 @@ class Ground extends PositionComponent {
           const Color(0xFF87CEEB),
           const Color(0xFFB0E0E6)
         ],
+        [0.0, 0.5, 1.0],
       );
     canvas.drawRect(Rect.fromLTWH(0, -300, w, 600), skyPaint);
 
