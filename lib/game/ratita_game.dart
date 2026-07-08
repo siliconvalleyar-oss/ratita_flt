@@ -110,6 +110,8 @@ class RatitaGame extends FlameGame {
     _player.lives = 5;
     _player.y = RatitaGame.groundY - _player.height;
     _player.x = RatitaGame.playerX;
+    _ground.setNightProgress(0.0);
+    _ground.setRaining(false);
     onStateChanged?.call();
   }
 
@@ -171,7 +173,6 @@ class RatitaGame extends FlameGame {
 
   @override
   void update(double dt) {
-    dt = dt.clamp(0, 0.05);
     super.update(dt);
 
     if (_screenState == GameScreenState.menu) {

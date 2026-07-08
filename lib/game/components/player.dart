@@ -233,6 +233,12 @@ class Player extends PositionComponent {
     _walkCycleTimer = 0;
     _isWalking = true;
     _jumpCount = 0;
+    velocityY = 0;
+    _particles.clear();
+    _phraseTimer = 0;
+    _currentPhrase = '';
+    hasShield = false;
+    _shieldTimer = 0;
   }
 
   void goToMenu() {
