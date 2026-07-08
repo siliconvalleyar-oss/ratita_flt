@@ -64,17 +64,29 @@ class Enemy extends PositionComponent {
   factory Enemy.random(double speed, Random random) {
     final r = random.nextDouble();
     EnemyType t;
-    if (r < 0.12) { t = EnemyType.walkingChicken; }
-    else if (r < 0.20) { t = EnemyType.eatingChicken; }
-    else if (r < 0.27) { t = EnemyType.standingChicken; }
-    else if (r < 0.37) { t = EnemyType.enemy0; }
-    else if (r < 0.47) { t = EnemyType.enemy1; }
-    else if (r < 0.55) { t = EnemyType.enemy2; }
-    else if (r < 0.65) { t = EnemyType.enemy3; }
-    else if (r < 0.73) { t = EnemyType.enemy4; }
-    else if (r < 0.83) { t = EnemyType.camion0; }
-    else if (r < 0.93) { t = EnemyType.camion1; }
-    else { t = EnemyType.pig; }
+    if (r < 0.12) {
+      t = EnemyType.walkingChicken;
+    } else if (r < 0.20) {
+      t = EnemyType.eatingChicken;
+    } else if (r < 0.27) {
+      t = EnemyType.standingChicken;
+    } else if (r < 0.37) {
+      t = EnemyType.enemy0;
+    } else if (r < 0.47) {
+      t = EnemyType.enemy1;
+    } else if (r < 0.55) {
+      t = EnemyType.enemy2;
+    } else if (r < 0.65) {
+      t = EnemyType.enemy3;
+    } else if (r < 0.73) {
+      t = EnemyType.enemy4;
+    } else if (r < 0.83) {
+      t = EnemyType.camion0;
+    } else if (r < 0.93) {
+      t = EnemyType.camion1;
+    } else {
+      t = EnemyType.pig;
+    }
     return Enemy(type: t);
   }
 
@@ -161,7 +173,13 @@ class Enemy extends PositionComponent {
         s.walk?.render(canvas, size: sz);
         break;
       case EnemyType.eatingChicken:
-        final sprite = _animFrame == 0 ? s.eat0 : _animFrame == 1 ? s.eat1 : _animFrame == 2 ? s.eat2 : s.eat3;
+        final sprite = _animFrame == 0
+            ? s.eat0
+            : _animFrame == 1
+                ? s.eat1
+                : _animFrame == 2
+                    ? s.eat2
+                    : s.eat3;
         sprite?.render(canvas, size: sz);
         break;
       case EnemyType.standingChicken:
