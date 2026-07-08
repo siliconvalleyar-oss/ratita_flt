@@ -161,7 +161,7 @@ class Player extends PositionComponent {
     if (_state == PlayerState.jumping) return;
     _jumpCount++;
     _state = PlayerState.jumping;
-    velocityY = -960;
+    velocityY = -440;
     final rng = Random();
     int idx;
     do {
@@ -175,17 +175,17 @@ class Player extends PositionComponent {
   void _startForward() {
     _startX = RatitaGame.playerX;
     _state = PlayerState.projectileForward;
-    velocityY = -1320;
+    velocityY = -500;
   }
 
   void _startInPlace() {
     _state = PlayerState.projectileInPlace;
-    velocityY = -1080;
+    velocityY = -400;
   }
 
   void _startReturn() {
     _state = PlayerState.projectileReturn;
-    velocityY = -1440;
+    velocityY = -420;
   }
 
   void die() {
@@ -297,7 +297,7 @@ class Player extends PositionComponent {
     }
 
     if (_state == PlayerState.projectileForward) {
-      velocityY += 7920 * dt;
+      velocityY += 1000 * dt;
       y += velocityY * dt;
       x += 200 * dt;
       if (y >= RatitaGame.groundY - height) {
@@ -309,7 +309,7 @@ class Player extends PositionComponent {
     }
 
     if (_state == PlayerState.projectileInPlace) {
-      velocityY += 9000 * dt;
+      velocityY += 900 * dt;
       y += velocityY * dt;
       if (y >= RatitaGame.groundY - height) {
         y = RatitaGame.groundY - height;
@@ -319,7 +319,7 @@ class Player extends PositionComponent {
     }
 
     if (_state == PlayerState.projectileReturn) {
-      velocityY += 7200 * dt;
+      velocityY += 900 * dt;
       y += velocityY * dt;
       x += (_startX - x) * 4 * dt;
       if (y >= RatitaGame.groundY - height) {
@@ -357,7 +357,6 @@ class Player extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    final sz = Vector2(width, height);
     final cx = width / 2;
     final cy = height / 2;
 
@@ -369,10 +368,10 @@ class Player extends PositionComponent {
     if (_useSprites) {
       switch (_state) {
         case PlayerState.menu:
-          _spriteArmOpen?.render(canvas, size: sz);
+          _renderSprite(canvas, _spriteArmOpen);
           break;
         case PlayerState.dead:
-          _spriteArmCrossed?.render(canvas, size: sz);
+          _renderSprite(canvas, _spriteArmCrossed);
           break;
         case PlayerState.exploding:
           for (final p in _particles) {
@@ -384,7 +383,7 @@ class Player extends PositionComponent {
                   ..color = Color.fromARGB(alpha, 255,
                       (180 + p[4] * 75).toInt().clamp(180, 255), 0));
           }
-          _spriteImpact?.render(canvas, size: sz);
+          _renderSprite(canvas, _spriteImpact);
           break;
         case PlayerState.celebrating:
           final sprite = _celebrationFrame == 0
@@ -392,27 +391,27 @@ class Player extends PositionComponent {
               : _celebrationFrame == 1
                   ? _spriteCelebrate1
                   : _spriteCelebrate2;
-          sprite?.render(canvas, size: sz);
+          _renderSprite(canvas, sprite);
           break;
         case PlayerState.running:
           if (!_isWalking) {
-            _spriteFront?.render(canvas, size: sz);
+            _renderSprite(canvas, _spriteFront);
           } else {
-            [
+            final frames = [
               _spriteWalk0,
               _spriteWalk1,
               _spriteWalk2,
               _spriteWalk3,
               _spriteWalk4
-            ][_frameIndex]
-                ?.render(canvas, size: sz);
+            ];
+            _renderSprite(canvas, frames[_frameIndex]);
           }
           break;
         case PlayerState.jumping:
         case PlayerState.projectileForward:
         case PlayerState.projectileInPlace:
         case PlayerState.projectileReturn:
-          _spriteJump?.render(canvas, size: sz);
+          _renderSprite(canvas, _spriteJump);
           break;
       }
     } else {
@@ -420,5 +419,18 @@ class Player extends PositionComponent {
           RRect.fromRectXY(Rect.fromLTWH(8, 8, width - 16, height - 16), 8, 8),
           Paint()..color = const Color(0xFF8B4513));
     }
+  }
+
+  void _renderSprite(Canvas canvas, Sprite? sprite) {
+    if (sprite == null) return;
+    final srcSize = sprite.originalSize;
+    final sx = width / srcSize.x;
+    final sy = height / srcSize.y;
+    final scale = sx < sy ? sx : sy;
+    final dw = srcSize.x * scale;
+    final dh = srcSize.y * scale;
+    final dx = (width - dw) / 2;
+    final dy = (height - dh) / 2;
+    sprite.render(canvas, position: Vector2(dx, dy), size: Vector2(dw, dh));
   }
 }
