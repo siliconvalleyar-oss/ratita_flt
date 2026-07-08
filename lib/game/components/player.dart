@@ -161,7 +161,7 @@ class Player extends PositionComponent {
     if (_state == PlayerState.jumping) return;
     _jumpCount++;
     _state = PlayerState.jumping;
-    velocityY = -16;
+    velocityY = -960;
     final rng = Random();
     int idx;
     do {
@@ -175,17 +175,17 @@ class Player extends PositionComponent {
   void _startForward() {
     _startX = RatitaGame.playerX;
     _state = PlayerState.projectileForward;
-    velocityY = -22;
+    velocityY = -1320;
   }
 
   void _startInPlace() {
     _state = PlayerState.projectileInPlace;
-    velocityY = -18;
+    velocityY = -1080;
   }
 
   void _startReturn() {
     _state = PlayerState.projectileReturn;
-    velocityY = -24;
+    velocityY = -1440;
   }
 
   void die() {
@@ -297,7 +297,7 @@ class Player extends PositionComponent {
     }
 
     if (_state == PlayerState.projectileForward) {
-      velocityY += 220 * dt;
+      velocityY += 7920 * dt;
       y += velocityY * dt;
       x += 200 * dt;
       if (y >= RatitaGame.groundY - height) {
@@ -309,7 +309,7 @@ class Player extends PositionComponent {
     }
 
     if (_state == PlayerState.projectileInPlace) {
-      velocityY += 250 * dt;
+      velocityY += 9000 * dt;
       y += velocityY * dt;
       if (y >= RatitaGame.groundY - height) {
         y = RatitaGame.groundY - height;
@@ -319,7 +319,7 @@ class Player extends PositionComponent {
     }
 
     if (_state == PlayerState.projectileReturn) {
-      velocityY += 200 * dt;
+      velocityY += 7200 * dt;
       y += velocityY * dt;
       x += (_startX - x) * 4 * dt;
       if (y >= RatitaGame.groundY - height) {
