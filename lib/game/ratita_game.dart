@@ -36,6 +36,8 @@ class RatitaGame extends FlameGame {
   String _lastHiText = '';
   String _lastScoreText = '';
   int _lastLives = -1;
+  String _lastPhraseText = '';
+  TextPainter? _tpPhrase;
   static final Paint _flashPaint = Paint()..color = const Color(0xAABBBBBB);
   static const List<int> _milestones = [100, 200, 500, 1000, 2000];
 
@@ -77,8 +79,6 @@ class RatitaGame extends FlameGame {
     _inCampoLaJuanita = false;
     _lastMilestoneScore = 0;
     _scoreSystem.reset();
-    _enemies.clear();
-    _friends.clear();
     _spawnTimer = 2.0;
     _friendTimer = 10.0;
     _gameTime = 10.0;
@@ -86,14 +86,30 @@ class RatitaGame extends FlameGame {
     _isRaining = false;
     _thunderTimer = 0;
     _flashAlpha = 0;
+    _explodeTimer = 0;
     AudioSystem.stopAll();
-    removeAll(children);
-    _player = Player();
-    _ground = Ground();
-    add(_ground);
-    add(_player);
+
+    // Remove enemies and friends, keep player and ground
+    for (final e in _enemies) {
+      e.removeFromParent();
+    }
+    _enemies.clear();
+    for (final f in _friends) {
+      f.removeFromParent();
+    }
+    _friends.clear();
+
+    // Remove any stray children that aren't player or ground
+    final toRemove =
+        children.where((c) => c != _player && c != _ground).toList();
+    for (final c in toRemove) {
+      c.removeFromParent();
+    }
+
     _player.goToRunning();
     _player.lives = 5;
+    _player.y = RatitaGame.groundY - _player.height;
+    _player.x = RatitaGame.playerX;
     onStateChanged?.call();
   }
 
@@ -110,11 +126,27 @@ class RatitaGame extends FlameGame {
     _screenState = GameScreenState.menu;
     _inCampoLaJuanita = false;
     AudioSystem.stopAll();
-    removeAll(children);
-    _player = Player();
-    _ground = Ground();
-    add(_ground);
-    add(_player);
+
+    // Remove enemies and friends
+    for (final e in _enemies) {
+      e.removeFromParent();
+    }
+    _enemies.clear();
+    for (final f in _friends) {
+      f.removeFromParent();
+    }
+    _friends.clear();
+
+    // Remove any stray children
+    final toRemove =
+        children.where((c) => c != _player && c != _ground).toList();
+    for (final c in toRemove) {
+      c.removeFromParent();
+    }
+
+    _player.goToMenu();
+    _player.y = RatitaGame.groundY - _player.height;
+    _player.x = RatitaGame.playerX;
     onStateChanged?.call();
   }
 
@@ -155,30 +187,39 @@ class RatitaGame extends FlameGame {
 
     // 0-20 day, 20-30 sunset, 30-50 night+rain, 50-60 back to day
     final cyclePos = _gameTime % 60.0;
-    final wasNight = _isNight;
 
     if (cyclePos >= 20 && cyclePos < 30) {
       // sunset transition
       _isNight = false;
+      _isRaining = false;
+      _ground.setRaining(false);
       _ground.setNightProgress((cyclePos - 20) / 10);
     } else if (cyclePos >= 30 && cyclePos < 50) {
       // night + rain
       _isNight = true;
+      _isRaining = true;
       _ground.setNightProgress(1.0);
+      _ground.setRaining(true);
     } else if (cyclePos >= 50 && cyclePos < 60) {
       // transition back to day
       _isNight = false;
+      _isRaining = false;
+      _ground.setRaining(false);
       _ground.setNightProgress(1.0 - (cyclePos - 50) / 10);
     } else {
       _isNight = false;
+      _isRaining = false;
+      _ground.setRaining(false);
       _ground.setNightProgress(0.0);
     }
 
-    // crickets when darkening starts (18-20s)
-    if (cyclePos >= 18 && cyclePos < 40 && !_isNight) {
-      if (!_isRaining) AudioSystem.startCrickets();
-    } else if (cyclePos >= 40) {
-      AudioSystem.stopCrickets();
+    // Audio: crickets during sunset (20-30s), rain during night (30-50s)
+    if (cyclePos >= 20 && cyclePos < 30) {
+      AudioSystem.startCrickets();
+    } else if (cyclePos >= 30 && cyclePos < 50) {
+      AudioSystem.startRain();
+    } else if (cyclePos >= 50) {
+      AudioSystem.stopRain();
     }
 
     // thunder during rain
@@ -256,7 +297,7 @@ class RatitaGame extends FlameGame {
     for (final e in _enemies) {
       if (!e.passed && e.x + e.width < playerX) {
         e.passed = true;
-        _scoreSystem.score += 10;
+        _scoreSystem.addBonus(10);
         AudioSystem.score();
         _player.celebrate();
       }
@@ -283,6 +324,7 @@ class RatitaGame extends FlameGame {
 
   void _checkCollisions() {
     final playerBox = _player.hitbox;
+    bool hit = false;
 
     for (int i = _enemies.length - 1; i >= 0; i--) {
       final e = _enemies[i];
@@ -291,15 +333,14 @@ class RatitaGame extends FlameGame {
           _player.hasShield = false;
           e.removeFromParent();
           _enemies.removeAt(i);
-          return;
-        } else {
+        } else if (!hit) {
+          hit = true;
           e.removeFromParent();
           _enemies.removeAt(i);
           _player.explode();
           _explodeTimer = 0.5;
           _flashAlpha = 0.8;
           AudioSystem.thunder();
-          return;
         }
       }
     }
@@ -310,7 +351,6 @@ class RatitaGame extends FlameGame {
         _player.hasShield = true;
         f.removeFromParent();
         _friends.removeAt(i);
-        return;
       }
     }
   }
@@ -321,6 +361,8 @@ class RatitaGame extends FlameGame {
 
     // lightning flash overlay
     if (_flashAlpha > 0) {
+      _flashPaint.color =
+          Color.fromRGBO(187, 187, 187, _flashAlpha.clamp(0.0, 1.0));
       canvas.drawRect(Rect.fromLTWH(0, 0, size.x, size.y), _flashPaint);
     }
 
@@ -354,15 +396,24 @@ class RatitaGame extends FlameGame {
       }
       _tpScore?.paint(canvas, Offset(size.x - (_tpScore?.width ?? 0) - 10, 42));
 
-      final heartsSpan = TextSpan(children: [
-        for (int i = 0; i < _player.lives; i++)
-          TextSpan(
-            text: '❤',
-            style: TextStyle(fontSize: 18, color: i.isEven ? const Color(0xFF2288FF) : const Color(0xFFDDAA00)),
-          ),
-      ]);
-      final tpLives = TextPainter(text: heartsSpan, textDirection: TextDirection.ltr)..layout();
-      tpLives.paint(canvas, const Offset(10, 42));
+      if (_player.lives != _lastLives) {
+        _lastLives = _player.lives;
+        final heartsSpan = TextSpan(children: [
+          for (int i = 0; i < _player.lives; i++)
+            TextSpan(
+              text: '❤',
+              style: TextStyle(
+                  fontSize: 18,
+                  color: i.isEven
+                      ? const Color(0xFF2288FF)
+                      : const Color(0xFFDDAA00)),
+            ),
+        ]);
+        _tpLives =
+            TextPainter(text: heartsSpan, textDirection: TextDirection.ltr)
+              ..layout();
+      }
+      _tpLives?.paint(canvas, const Offset(10, 42));
 
       if (_inCampoLaJuanita && _tpCampo == null) {
         _tpCampo = TextPainter(
@@ -387,22 +438,27 @@ class RatitaGame extends FlameGame {
         final bubbleX = (size.x - bubbleW) / 2;
         final bubbleY = 30.0;
 
-        _player.frasesSprite?.render(canvas, position: Vector2(bubbleX, bubbleY), size: Vector2(bubbleW, bubbleH));
+        _player.frasesSprite?.render(canvas,
+            position: Vector2(bubbleX, bubbleY),
+            size: Vector2(bubbleW, bubbleH));
 
-        final tp = TextPainter(
-          text: TextSpan(
-            text: _player.currentPhrase,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF333333),
-              fontFamily: 'monospace',
-              fontWeight: FontWeight.bold,
+        if (_player.currentPhrase != _lastPhraseText) {
+          _lastPhraseText = _player.currentPhrase;
+          _tpPhrase = TextPainter(
+            text: TextSpan(
+              text: _player.currentPhrase,
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF333333),
+                fontFamily: 'monospace',
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-          textDirection: TextDirection.ltr,
-          maxLines: 3,
-        )..layout(maxWidth: bubbleW - 20);
-        tp.paint(canvas, Offset(bubbleX + 10, bubbleY + 10));
+            textDirection: TextDirection.ltr,
+            maxLines: 3,
+          )..layout(maxWidth: bubbleW - 20);
+        }
+        _tpPhrase?.paint(canvas, Offset(bubbleX + 10, bubbleY + 10));
       }
     }
   }
