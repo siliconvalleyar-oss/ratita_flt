@@ -61,6 +61,7 @@ class Ground extends PositionComponent {
       _bolt0 = await Sprite.load('ratita/rayo_00.png');
       _bolt1 = await Sprite.load('ratita/rayo_01.png');
     } catch (_) {}
+    _buildStaticPaths();
     for (int i = 0; i < 60; i++) {
       _starX.add(_random.nextDouble() * 900);
       _starY.add(_random.nextDouble() * 200 + 20);
@@ -79,6 +80,31 @@ class Ground extends PositionComponent {
       _treeX.add(x);
       _treeType.add(_random.nextInt(4));
     }
+  }
+
+  void _buildStaticPaths() {
+    final w = RatitaGame.viewportW;
+    final groundTop = RatitaGame.groundY;
+    _cachedMtnPath = Path();
+    for (double i = 0; i < w; i += 140 + (_random.nextDouble() * 40)) {
+      final mh = 30.0 + _random.nextDouble() * 40;
+      _cachedMtnPath!.moveTo(i, groundTop);
+      _cachedMtnPath!
+          .quadraticBezierTo(i + 35, groundTop - mh, i + 70, groundTop);
+      _cachedMtnPath!.quadraticBezierTo(
+          i + 105, groundTop - mh * 0.6, i + 140, groundTop);
+    }
+    _cachedMtnPath!.close();
+    _cachedHillPath = Path();
+    for (double i = 0; i < w; i += 100 + (_random.nextDouble() * 30)) {
+      final hh = 15.0 + _random.nextDouble() * 20;
+      _cachedHillPath!.moveTo(i, groundTop);
+      _cachedHillPath!
+          .quadraticBezierTo(i + 25, groundTop - hh, i + 50, groundTop);
+      _cachedHillPath!.quadraticBezierTo(
+          i + 75, groundTop - hh * 0.5, i + 100, groundTop);
+    }
+    _cachedHillPath!.close();
   }
 
   void scroll(double speed, double dt) {}
@@ -140,29 +166,6 @@ class Ground extends PositionComponent {
       ..color = _lerpColor(const Color(0xFF5D8A3C), const Color(0xFF1A4A1A), t);
     _cachedDashPaint = Paint()
       ..color = _lerpColor(const Color(0xFFCCCCCC), const Color(0xFF444444), t);
-
-    if (_cachedMtnPath == null) {
-      _cachedMtnPath = Path();
-      for (double i = 0; i < w; i += 140 + (_random.nextDouble() * 40)) {
-        final mh = 30.0 + _random.nextDouble() * 40;
-        _cachedMtnPath!.moveTo(i, groundTop);
-        _cachedMtnPath!
-            .quadraticBezierTo(i + 35, groundTop - mh, i + 70, groundTop);
-        _cachedMtnPath!.quadraticBezierTo(
-            i + 105, groundTop - mh * 0.6, i + 140, groundTop);
-      }
-      _cachedMtnPath!.close();
-      _cachedHillPath = Path();
-      for (double i = 0; i < w; i += 100 + (_random.nextDouble() * 30)) {
-        final hh = 15.0 + _random.nextDouble() * 20;
-        _cachedHillPath!.moveTo(i, groundTop);
-        _cachedHillPath!
-            .quadraticBezierTo(i + 25, groundTop - hh, i + 50, groundTop);
-        _cachedHillPath!.quadraticBezierTo(
-            i + 75, groundTop - hh * 0.5, i + 100, groundTop);
-      }
-      _cachedHillPath!.close();
-    }
   }
 
   @override

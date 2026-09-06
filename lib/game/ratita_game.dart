@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:math';
 import 'package:flutter/painting.dart';
 import 'package:flame/game.dart';
@@ -18,12 +19,12 @@ class RatitaGame extends FlameGame {
   final List<Friend> _friends = [];
   double _spawnTimer = 0;
   double _friendTimer = 0;
-  GameScreenState _screenState = GameScreenState.menu;
+  final ValueNotifier<GameScreenState> screenState =
+      ValueNotifier(GameScreenState.menu);
   final Random _random = Random();
   bool _inCampoLaJuanita = false;
   int _lastMilestoneScore = 0;
   double _gameTime = 0;
-  bool _isNight = false;
   bool _isRaining = false;
   double _thunderTimer = 0;
   double _flashAlpha = 0;
@@ -41,7 +42,15 @@ class RatitaGame extends FlameGame {
   static final Paint _flashPaint = Paint()..color = const Color(0xAABBBBBB);
   static const List<int> _milestones = [100, 200, 500, 1000, 2000];
 
-  VoidCallback? onStateChanged;
+  @override
+  Future<void> onLoad() async {
+    _scoreSystem = ScoreSystem();
+    _player = Player();
+    _ground = Ground();
+    add(_ground);
+    add(_player);
+    await Enemy.preloadSprites();
+  }
 
   static const double groundY = 340;
   static const double viewportW = 900;
@@ -50,39 +59,29 @@ class RatitaGame extends FlameGame {
   static const int campoLaJuanitaThreshold = 300;
   static const int celebrationDuration = 2;
 
-  bool get isPlaying => _screenState == GameScreenState.playing;
-  bool get isGameOver => _screenState == GameScreenState.gameOver;
-  bool get isMenu => _screenState == GameScreenState.menu;
+  bool get isPlaying => screenState.value == GameScreenState.playing;
+  bool get isGameOver => screenState.value == GameScreenState.gameOver;
+  bool get isMenu => screenState.value == GameScreenState.menu;
   bool get inCampoLaJuanita => _inCampoLaJuanita;
   ScoreSystem get scoreSystem => _scoreSystem;
 
   @override
   Color backgroundColor() => const Color(0xFF87CEEB);
 
-  @override
-  Future<void> onLoad() async {
-    _scoreSystem = ScoreSystem();
-    _player = Player();
-    _ground = Ground();
-    add(_ground);
-    add(_player);
-  }
-
   void handleTap() {
-    if (_screenState == GameScreenState.playing) {
+    if (screenState.value == GameScreenState.playing) {
       _player.jump();
     }
   }
 
   void startGame() {
-    _screenState = GameScreenState.playing;
+    screenState.value = GameScreenState.playing;
     _inCampoLaJuanita = false;
     _lastMilestoneScore = 0;
     _scoreSystem.reset();
     _spawnTimer = 2.0;
     _friendTimer = 10.0;
     _gameTime = 10.0;
-    _isNight = false;
     _isRaining = false;
     _thunderTimer = 0;
     _flashAlpha = 0;
@@ -112,20 +111,18 @@ class RatitaGame extends FlameGame {
     _player.x = RatitaGame.playerX;
     _ground.setNightProgress(0.0);
     _ground.setRaining(false);
-    onStateChanged?.call();
   }
 
   void endGame() {
-    _screenState = GameScreenState.gameOver;
+    screenState.value = GameScreenState.gameOver;
     _player.die();
     _scoreSystem.checkHighScore();
     AudioSystem.stopAll();
     AudioSystem.death();
-    onStateChanged?.call();
   }
 
   void goToMenu() {
-    _screenState = GameScreenState.menu;
+    screenState.value = GameScreenState.menu;
     _inCampoLaJuanita = false;
     AudioSystem.stopAll();
 
@@ -149,7 +146,6 @@ class RatitaGame extends FlameGame {
     _player.goToMenu();
     _player.y = RatitaGame.groundY - _player.height;
     _player.x = RatitaGame.playerX;
-    onStateChanged?.call();
   }
 
   void _spawnEnemy() {
@@ -175,12 +171,12 @@ class RatitaGame extends FlameGame {
   void update(double dt) {
     super.update(dt);
 
-    if (_screenState == GameScreenState.menu) {
+    if (screenState.value == GameScreenState.menu) {
       _player.updateMenuAnimation(dt);
       return;
     }
 
-    if (_screenState == GameScreenState.gameOver) return;
+    if (screenState.value == GameScreenState.gameOver) return;
 
     _scoreSystem.update(dt);
 
@@ -191,24 +187,20 @@ class RatitaGame extends FlameGame {
 
     if (cyclePos >= 20 && cyclePos < 30) {
       // sunset transition
-      _isNight = false;
       _isRaining = false;
       _ground.setRaining(false);
       _ground.setNightProgress((cyclePos - 20) / 10);
     } else if (cyclePos >= 30 && cyclePos < 50) {
       // night + rain
-      _isNight = true;
       _isRaining = true;
       _ground.setNightProgress(1.0);
       _ground.setRaining(true);
     } else if (cyclePos >= 50 && cyclePos < 60) {
       // transition back to day
-      _isNight = false;
       _isRaining = false;
       _ground.setRaining(false);
       _ground.setNightProgress(1.0 - (cyclePos - 50) / 10);
     } else {
-      _isNight = false;
       _isRaining = false;
       _ground.setRaining(false);
       _ground.setNightProgress(0.0);
@@ -367,7 +359,7 @@ class RatitaGame extends FlameGame {
       canvas.drawRect(Rect.fromLTWH(0, 0, size.x, size.y), _flashPaint);
     }
 
-    if (_screenState == GameScreenState.playing) {
+    if (screenState.value == GameScreenState.playing) {
       const textStyle = TextStyle(
         fontSize: 22,
         color: Color(0xFF6B4226),

@@ -17,9 +17,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     _game = RatitaGame();
-    _game.onStateChanged = () {
-      if (mounted) setState(() {});
-    };
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -40,11 +37,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   }
 
   void _startGame() {
-    setState(() => _game.startGame());
+    _game.startGame();
   }
 
   void _goToMenu() {
-    setState(() => _game.goToMenu());
+    _game.goToMenu();
   }
 
   KeyEventResult _handleKeyEvent(KeyEvent event) {
@@ -88,8 +85,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           child: Stack(
             children: [
               gameWithTap,
-              if (_game.isMenu) _buildMenuOverlay(),
-              if (_game.isGameOver) _buildGameOverOverlay(),
+              ValueListenableBuilder<GameScreenState>(
+                valueListenable: _game.screenState,
+                builder: (context, state, _) {
+                  if (state == GameScreenState.menu) {
+                    return _buildMenuOverlay();
+                  }
+                  if (state == GameScreenState.gameOver) {
+                    return _buildGameOverOverlay();
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ],
           ),
         ),

@@ -54,6 +54,7 @@ class _EnemySprites {
 }
 
 class Enemy extends PositionComponent {
+  static Future<void> preloadSprites() => _EnemySprites.loadAll();
   final EnemyType type;
   bool passed = false;
   double _animTimer = 0;
@@ -91,8 +92,8 @@ class Enemy extends PositionComponent {
   }
 
   @override
-  Future<void> onLoad() async {
-    await _EnemySprites.loadAll();
+  void onLoad() {
+    _EnemySprites.loadAll();
 
     switch (type) {
       case EnemyType.walkingChicken:
